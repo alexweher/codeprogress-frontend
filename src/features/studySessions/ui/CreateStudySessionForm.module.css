@@ -1,0 +1,168 @@
+.form {
+  display: grid;
+  gap: 1.15rem;
+  margin-top: 1.25rem;
+}
+
+.field,
+.fieldGrid {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fieldGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+
+.field label,
+.tasksFieldset legend {
+  color: var(--color-text-strong);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.7rem;
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+  font: inherit;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.tasksFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+}
+
+.tasksFieldset:disabled {
+  opacity: 0.75;
+}
+
+.taskOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.taskOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.7rem;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.taskOption input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.taskOption span {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.taskOption strong {
+  overflow-wrap: anywhere;
+}
+
+.taskOption small,
+.hint,
+.taskNotice {
+  color: var(--color-text-subtle);
+  line-height: 1.45;
+}
+
+.hint,
+.taskNotice,
+.error,
+.submissionError {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.taskNotice {
+  margin-top: 0.75rem;
+}
+
+.error,
+.submissionError {
+  color: var(--color-danger);
+}
+
+.warning {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-left: 0.25rem solid var(--color-brand);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, var(--color-brand) 8%, var(--color-surface));
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.actions button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.05rem;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.actions button[type='submit'] {
+  border: 0;
+  background: var(--color-brand);
+  color: white;
+}
+
+.actions button[type='button'] {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 760px) {
+  .fieldGrid,
+  .taskOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  .actions button {
+    width: 100%;
+  }
+}

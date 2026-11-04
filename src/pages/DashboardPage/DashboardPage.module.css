@@ -1,0 +1,273 @@
+.page {
+  width: min(72rem, 100%);
+  min-width: 0;
+  padding: clamp(2rem, 5vw, 4.5rem);
+}
+
+.pageHeader,
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.pageHeader {
+  margin-bottom: 2.5rem;
+}
+
+.pageHeader h1 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.pageHeader > div > p:last-child,
+.sectionHeading > p,
+.errorState > p:not(.eyebrow),
+.emptyState > p:not(.eyebrow) {
+  max-width: 42rem;
+  margin: 0.9rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.period {
+  flex: 0 0 auto;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--color-brand-strong);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sectionHeading {
+  margin-bottom: 1rem;
+}
+
+.sectionHeading h2,
+.emptyState h2,
+.errorState h1 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  letter-spacing: -0.035em;
+}
+
+.sectionHeading > p {
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.sectionHeading > p span {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--color-text-subtle);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.metricCard {
+  min-width: 0;
+  padding: 1.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
+}
+
+.metricCard dt {
+  color: var(--color-text-subtle);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.metricCard dd {
+  margin: 0.75rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-strong);
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.activitySection {
+  min-width: 0;
+  margin-top: 3rem;
+}
+
+.chartScroller {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(3.2rem, 1fr));
+  align-items: end;
+  gap: 0.45rem;
+  min-width: 66rem;
+  height: 19rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart li {
+  display: grid;
+  grid-template-rows: 1.4rem 1fr auto auto;
+  align-items: end;
+  gap: 0.35rem;
+  height: 100%;
+  text-align: center;
+}
+
+.chart strong,
+.chart time,
+.chart small {
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
+}
+
+.chart strong {
+  color: var(--color-text-strong);
+}
+
+.bar,
+.zeroBar {
+  width: 100%;
+  height: max(0.25rem, var(--bar-height));
+  border-radius: 0.35rem 0.35rem 0.15rem 0.15rem;
+  background: var(--color-brand);
+}
+
+.zeroBar {
+  height: 0.25rem;
+  background: var(--color-border-strong);
+}
+
+.chartNote {
+  margin: 0.75rem 0 0;
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+}
+
+.emptyState,
+.errorState {
+  margin-bottom: 2.5rem;
+  padding: 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, var(--color-border));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-brand) 5%, var(--color-surface));
+}
+
+.errorState {
+  margin: 0;
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+}
+
+.errorState button {
+  min-height: 2.6rem;
+  margin-top: 1.25rem;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: var(--color-brand);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.headingSkeleton,
+.cardSkeletons span {
+  border-radius: 1rem;
+  background: linear-gradient(
+    100deg,
+    var(--color-surface-muted) 30%,
+    var(--color-surface) 50%,
+    var(--color-surface-muted) 70%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.headingSkeleton {
+  width: min(24rem, 80%);
+  height: 6rem;
+  margin-bottom: 2rem;
+}
+
+.cardSkeletons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.cardSkeletons span {
+  height: 7rem;
+}
+
+.loadingText {
+  margin-top: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -220%;
+  }
+}
+
+@media (max-width: 900px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .pageHeader,
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .sectionHeading > p {
+    text-align: left;
+  }
+
+  .metrics,
+  .cardSkeletons {
+    grid-template-columns: 1fr;
+  }
+}

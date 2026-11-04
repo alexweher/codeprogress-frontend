@@ -1,0 +1,250 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(20rem, 0.9fr);
+  align-items: center;
+  gap: clamp(3rem, 8vw, 8rem);
+  width: min(76rem, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 4rem 0;
+}
+
+.hero {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-text-strong);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  background: var(--color-brand);
+  color: var(--color-surface);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  box-shadow: var(--shadow-brand);
+}
+
+.content {
+  max-width: 42rem;
+}
+
+.eyebrow {
+  margin: 0 0 1rem;
+  color: var(--color-brand-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.content h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(3rem, 7vw, 5.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.065em;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: 1.75rem 0 0;
+  color: var(--color-text-muted);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.7;
+}
+
+.foundationList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1.5rem;
+  margin: 2.25rem 0;
+  padding: 0;
+  list-style: none;
+  color: var(--color-text);
+  font-size: 0.925rem;
+}
+
+.foundationList li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.foundationList li::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.status span {
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--color-surface);
+  border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-success) 25%, transparent);
+}
+
+.preview {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(1rem);
+}
+
+.preview::before {
+  content: '';
+  position: absolute;
+  top: -8rem;
+  right: -8rem;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-brand) 15%, transparent);
+  filter: blur(0.5rem);
+}
+
+.previewHeader,
+.metric,
+.previewCards {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.previewHeader {
+  align-items: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-strong);
+  font-weight: 750;
+}
+
+.previewDate {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.metric {
+  align-items: baseline;
+  margin-top: 2.5rem;
+  color: var(--color-text-muted);
+}
+
+.metric strong {
+  color: var(--color-text-strong);
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.progressTrack {
+  height: 0.55rem;
+  margin: 1rem 0 2.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.progressTrack span {
+  display: block;
+  width: 72%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-accent));
+}
+
+.previewCards {
+  margin-bottom: 1.5rem;
+}
+
+.previewCards div {
+  flex: 1;
+  padding: 1.2rem;
+  border-radius: 1rem;
+  background: var(--color-surface-muted);
+}
+
+.previewCards span,
+.previewCards strong {
+  display: block;
+}
+
+.previewCards span {
+  margin-bottom: 0.5rem;
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+.previewCards strong {
+  color: var(--color-text-strong);
+  font-size: 1.5rem;
+}
+
+.preview > p {
+  position: relative;
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 800px) {
+  .page {
+    grid-template-columns: 1fr;
+    gap: 3.5rem;
+    width: min(38rem, calc(100% - 2rem));
+    padding: 1.5rem 0 3rem;
+  }
+
+  .hero {
+    gap: 4rem;
+  }
+
+  .content h1 {
+    font-size: clamp(3.2rem, 16vw, 5rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .foundationList {
+    grid-template-columns: 1fr;
+  }
+
+  .previewCards {
+    flex-direction: column;
+  }
+}

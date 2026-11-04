@@ -1,0 +1,229 @@
+.section {
+  margin-top: 1rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
+}
+
+.heading,
+.taskHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading h2,
+.formCard h3,
+.taskCard h3,
+.emptyState h3,
+.errorState h3 {
+  margin: 0;
+  color: var(--color-text-strong);
+  overflow-wrap: anywhere;
+}
+
+.heading h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--color-brand-strong);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.heading > button,
+.errorState button {
+  min-height: 2.65rem;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.7rem;
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.heading > button:hover:not(:disabled),
+.errorState button:hover {
+  border-color: var(--color-brand);
+  color: var(--color-brand-strong);
+}
+
+.heading > button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.successMessage,
+.formCard,
+.emptyState,
+.errorState,
+.loadingState {
+  margin-top: 1.25rem;
+}
+
+.successMessage {
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-success) 35%, var(--color-border));
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
+  color: var(--color-text-strong);
+}
+
+.formCard,
+.emptyState,
+.errorState {
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.85rem;
+  background: var(--color-background);
+}
+
+.emptyState p,
+.errorState p,
+.description {
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.errorState button {
+  margin-top: 0.5rem;
+}
+
+.loadingState {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.loadingState span {
+  height: 5rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(
+    100deg,
+    var(--color-surface-muted) 30%,
+    var(--color-surface) 50%,
+    var(--color-surface-muted) 70%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.loadingState p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.taskCard {
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.85rem;
+  background: var(--color-background);
+}
+
+.taskCard h3 {
+  font-size: 1.05rem;
+}
+
+.status {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.status[data-status='IN_PROGRESS'] {
+  background: color-mix(in srgb, var(--color-brand) 12%, var(--color-surface));
+  color: var(--color-brand-strong);
+}
+
+.status[data-status='COMPLETED'] {
+  background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface));
+  color: var(--color-text-strong);
+}
+
+.description {
+  margin: 1rem 0 0;
+}
+
+.metadata {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+}
+
+.metadata div {
+  min-width: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.metadata dt {
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.metadata dd {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -220%;
+  }
+}
+
+@media (max-width: 800px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .heading,
+  .taskHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .heading > button {
+    width: 100%;
+  }
+
+  .status {
+    align-self: flex-start;
+  }
+
+  .metadata {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,116 @@
+.backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(25, 31, 28, 0.58);
+  backdrop-filter: blur(0.2rem);
+}
+
+.dialog {
+  width: min(31rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: clamp(1.35rem, 5vw, 2rem);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  border-radius: 1.2rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--color-danger);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dialog h2 {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  letter-spacing: -0.04em;
+}
+
+.warning,
+.consequence,
+.error {
+  margin: 1rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.warning strong {
+  color: var(--color-text-strong);
+}
+
+.consequence {
+  padding: 0.85rem 1rem;
+  border-left: 0.25rem solid var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  color: var(--color-text-strong);
+}
+
+.error {
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  border-radius: 0.7rem;
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+
+.actions button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cancel,
+.secondary {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-strong);
+}
+
+.delete {
+  border: 0;
+  background: var(--color-danger);
+  color: white;
+}
+
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+@media (max-width: 520px) {
+  .backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-height: 88vh;
+    border-radius: 1.2rem 1.2rem 0 0;
+  }
+
+  .actions,
+  .actions button {
+    width: 100%;
+  }
+}
