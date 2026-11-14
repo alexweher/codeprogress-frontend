@@ -1,16 +1,41 @@
 .page {
-  width: min(72rem, 100%);
+  width: min(78rem, 100%);
   min-width: 0;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
 }
 
-.backLink {
+.backLink,
+.breadcrumbs a {
   display: inline-block;
   margin-bottom: 2rem;
   color: var(--color-brand-strong);
   font-size: 0.85rem;
   font-weight: 800;
   text-underline-offset: 0.2em;
+}
+
+.breadcrumbs {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.breadcrumbs a,
+.breadcrumbs span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.breadcrumbs span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pageHeader,
@@ -22,7 +47,14 @@
 }
 
 .pageHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 1.15rem;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(1.15rem, 2.5vw, 1.6rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: linear-gradient(135deg, var(--color-surface), var(--color-primary-soft));
+  box-shadow: var(--shadow-card);
 }
 
 .pageHeader h1,
@@ -36,8 +68,73 @@
 }
 
 .pageHeader h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1;
+  font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.headerCopy {
+  min-width: 0;
+  flex: 1;
+}
+
+.headerCopy > p:last-child {
+  max-width: 48rem;
+  margin: 0.7rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.topicMark {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 1.25rem;
+  background: var(--color-primary);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 900;
+  box-shadow: 0 0.75rem 1.6rem rgba(100, 71, 221, 0.22);
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(17rem, 0.75fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.primaryColumn,
+.sideColumn {
+  display: grid;
+  min-width: 0;
+  gap: 1.25rem;
+}
+
+.sideColumn {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.detailsCard .sectionHeading {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detailsCard .actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detailsCard .actions button {
+  width: 100%;
+}
+
+.detailsCard .deleteTopicButton {
+  grid-column: 1 / -1;
 }
 
 .eyebrow {
@@ -74,13 +171,13 @@
 .messageState {
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
   background: var(--color-surface);
   box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
 }
 
 .actionCard {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .sectionHeading h2,
@@ -136,6 +233,43 @@
   line-height: 1.7;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1.25rem 0;
+}
+
+.statGrid div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem 0.55rem;
+  border-radius: 0.9rem;
+  background: var(--color-background);
+  text-align: center;
+}
+
+.statGrid strong {
+  color: var(--color-text-strong);
+  font-size: 1.2rem;
+}
+
+.statGrid span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.statusNote {
+  margin: 1rem 0 0;
+  padding: 0.85rem;
+  border-radius: 0.85rem;
+  background: var(--color-info-soft);
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .emptyDescription,
@@ -213,7 +347,7 @@
 
 @media (max-width: 700px) {
   .page {
-    padding: 2.5rem 1.25rem;
+    padding: 1.25rem 1rem 5.5rem;
   }
 
   .pageHeader,
@@ -223,6 +357,18 @@
     gap: 1rem;
   }
 
+  .pageHeader {
+    align-items: flex-start;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    position: static;
+  }
+
   .actions,
   .actions button {
     width: 100%;
@@ -230,5 +376,15 @@
 
   .metadata {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1050px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    position: static;
   }
 }

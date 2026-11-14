@@ -82,12 +82,11 @@ function installApiMock(fetchMock: Mock<typeof fetch>, handlers: TopicHandlers =
 
 async function signInAndOpenTopics(fetchMock: Mock<typeof fetch>, handlers?: TopicHandlers) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login');
+  const view = renderApp('/app/topics');
   await view.user.type(screen.getByLabelText('Email'), 'topics@example.com');
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
+  await screen.findByRole('heading', { name: 'My Topics' });
   return view;
 }
 
@@ -170,12 +169,10 @@ describe('topics API and page', () => {
     authSession.clear();
 
     installApiMock(fetchMock, { get: () => Promise.resolve(jsonResponse([])) });
-    const empty = renderApp('/login');
+    const empty = renderApp('/app/topics');
     await empty.user.type(screen.getByLabelText('Email'), 'topics@example.com');
     await empty.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
     await empty.user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
-    await empty.user.click(screen.getByRole('link', { name: /topics/i }));
     expect(await screen.findByRole('heading', { name: 'No topics yet' })).toBeVisible();
   });
 
@@ -269,13 +266,11 @@ describe('topics API and page', () => {
         return Promise.resolve(jsonResponse(topic, 201));
       },
     });
-    const { user } = renderApp('/login', queryClient);
+    const { user } = renderApp('/app/topics', queryClient);
     queryClient.setQueryData(dashboardQueryKeys.summary(42), { totalTopics: 0 });
     await user.type(screen.getByLabelText('Email'), 'topics@example.com');
     await user.type(screen.getByLabelText('Password'), 'not-a-real-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
-    await user.click(screen.getByRole('link', { name: /topics/i }));
     await screen.findByRole('heading', { name: 'No topics yet' });
     await user.click(screen.getByRole('button', { name: 'Add Topic' }));
     await user.type(screen.getByLabelText('Title'), topic.title);
@@ -303,14 +298,12 @@ describe('topics API and page', () => {
           ),
         ),
     });
-    const { user } = renderApp('/login', queryClient);
+    const { user } = renderApp('/app/topics', queryClient);
     queryClient.setQueryData(topicQueryKeys.list(42), [topic]);
     await user.type(screen.getByLabelText('Email'), 'topics@example.com');
     await user.type(screen.getByLabelText('Password'), 'not-a-real-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
     queryClient.removeQueries({ queryKey: topicQueryKeys.all(42) });
-    await user.click(screen.getByRole('link', { name: /topics/i }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();
     await waitFor(() => expect(queryClient.getQueryCache().getAll()).toHaveLength(0));
@@ -319,12 +312,10 @@ describe('topics API and page', () => {
   it('does not retain topic data after manual logout', async () => {
     const queryClient = createTestQueryClient();
     installApiMock(fetchMock);
-    const { user } = renderApp('/login', queryClient);
+    const { user } = renderApp('/app/topics', queryClient);
     await user.type(screen.getByLabelText('Email'), 'topics@example.com');
     await user.type(screen.getByLabelText('Password'), 'not-a-real-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
-    await user.click(screen.getByRole('link', { name: /topics/i }));
     await screen.findByText(topic.title);
     expect(queryClient.getQueryData(topicQueryKeys.list(42))).toEqual([topic]);
 

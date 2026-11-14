@@ -5,6 +5,8 @@ import {
   TOPIC_TITLE_MAX_LENGTH,
   type CreateTopicRequest,
 } from '../api/topicsApi';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import type { I18nContextValue } from '../../../shared/i18n/I18nContext';
 
 type CreateTopicFormProps = {
   isPending: boolean;
@@ -14,23 +16,24 @@ type CreateTopicFormProps = {
 
 type FieldErrors = Partial<Record<'title' | 'description', string>>;
 
-function getSubmissionMessage(error: unknown) {
+function getSubmissionMessage(error: unknown, t: I18nContextValue['t']) {
   if (error instanceof NetworkError) {
-    return 'CodeProgress could not reach the server. Check your connection and try again.';
+    return t('common.networkError');
   }
 
   if (error instanceof ResponseFormatError) {
-    return 'The server returned an unexpected response. Please try again.';
+    return t('common.unexpectedResponse');
   }
 
   if (error instanceof HttpError) {
-    return error.apiError?.message ?? 'The topic could not be created. Please try again.';
+    return t('topics.createError');
   }
 
-  return 'Something went wrong. Please try again.';
+  return t('topics.createError');
 }
 
 export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -45,12 +48,12 @@ export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFo
 
     const nextErrors: FieldErrors = {};
     if (title.trim().length === 0) {
-      nextErrors.title = 'Enter a topic title.';
+      nextErrors.title = t('topics.titleRequired');
     } else if (title.length > TOPIC_TITLE_MAX_LENGTH) {
-      nextErrors.title = `Use ${TOPIC_TITLE_MAX_LENGTH} characters or fewer.`;
+      nextErrors.title = t('common.maxCharacters', { count: TOPIC_TITLE_MAX_LENGTH });
     }
     if (description.length > TOPIC_DESCRIPTION_MAX_LENGTH) {
-      nextErrors.description = `Use ${TOPIC_DESCRIPTION_MAX_LENGTH} characters or fewer.`;
+      nextErrors.description = t('common.maxCharacters', { count: TOPIC_DESCRIPTION_MAX_LENGTH });
     }
 
     setFieldErrors(nextErrors);
@@ -76,7 +79,7 @@ export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFo
         }
         setFieldErrors(backendErrors);
       }
-      setSubmissionError(getSubmissionMessage(error));
+      setSubmissionError(getSubmissionMessage(error, t));
     }
   }
 
@@ -86,7 +89,7 @@ export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFo
   return (
     <form onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div>
-        <label htmlFor="topic-title">Title</label>
+        <label htmlFor="topic-title">{t('topics.titleLabel')}</label>
         <input
           id="topic-title"
           name="title"
@@ -109,7 +112,9 @@ export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFo
       </div>
 
       <div>
-        <label htmlFor="topic-description">Description (optional)</label>
+        <label htmlFor="topic-description">
+          {t('topics.descriptionLabel')} {t('common.optional')}
+        </label>
         <textarea
           id="topic-description"
           name="description"
@@ -132,10 +137,10 @@ export function CreateTopicForm({ isPending, onCancel, onSubmit }: CreateTopicFo
 
       <div>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Creating…' : 'Create topic'}
+          {isPending ? t('topics.creating') : t('topics.create')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

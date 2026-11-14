@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../features/auth/ui/ProtectedRoute';
 import { PublicOnlyRoute } from '../features/auth/ui/PublicOnlyRoute';
-import { AppOverview } from '../pages/AppPage/AppOverview';
 import { AppPage } from '../pages/AppPage/AppPage';
 import { DashboardPage } from '../pages/DashboardPage/DashboardPage';
 import { LoginPage } from '../pages/LoginPage/LoginPage';
@@ -10,6 +9,7 @@ import { TopicsPage } from '../pages/TopicsPage/TopicsPage';
 import { TopicDetailsPage } from '../pages/TopicDetailsPage/TopicDetailsPage';
 import { LearningTaskDetailsPage } from '../pages/LearningTaskDetailsPage/LearningTaskDetailsPage';
 import { StudySessionDetailsPage } from '../pages/StudySessionDetailsPage/StudySessionDetailsPage';
+import { SettingsPage } from '../pages/SettingsPage/SettingsPage';
 
 export function AppRoutes() {
   return (
@@ -31,12 +31,13 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<AppOverview />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="topics" element={<TopicsPage />} />
         <Route path="topics/:topicId" element={<TopicDetailsPage />} />
         <Route path="tasks/:taskId" element={<LearningTaskDetailsPage />} />
         <Route path="sessions/:sessionId" element={<StudySessionDetailsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
       <Route
         path="/register"

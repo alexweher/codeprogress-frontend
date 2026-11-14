@@ -15,5 +15,10 @@
     "noEmit": true,
     "types": ["@playwright/test"]
   },
-  "include": ["playwright.config.ts", "playwright.real.config.ts", "e2e/**/*.ts"]
+  "include": [
+    "playwright.config.ts",
+    "playwright.real.config.ts",
+    "playwright.visual.config.ts",
+    "e2e/**/*.ts"
+  ]
 }

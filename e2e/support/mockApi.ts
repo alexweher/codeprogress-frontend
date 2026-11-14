@@ -120,7 +120,10 @@ export async function installMockApi(page: Page, options: MockApiOptions = {}) {
     taskDeleteRequests: 0,
     taskGetRequests: 0,
   };
-  await page.route('http://127.0.0.1:5173/api/**', async (route) => {
+  const runtime = globalThis as { process?: { env?: Record<string, string | undefined> } };
+  const mockOrigin =
+    runtime.process?.env?.CODEPROGRESS_MOCK_E2E_BASE_URL ?? 'http://127.0.0.1:5173';
+  await page.route(`${mockOrigin}/api/**`, async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const path = url.pathname;

@@ -8,25 +8,27 @@ import {
 } from '../../../shared/api/apiError';
 import { register } from '../api/authApi';
 import styles from './LoginForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import type { I18nContextValue } from '../../../shared/i18n/I18nContext';
 
 type FieldErrors = Partial<Record<'email' | 'password', string>>;
 
-function validate(email: string, password: string): FieldErrors {
+function validate(email: string, password: string, t: I18nContextValue['t']): FieldErrors {
   const errors: FieldErrors = {};
   const normalizedEmail = email.trim();
 
   if (!normalizedEmail) {
-    errors.email = 'Email is required.';
+    errors.email = t('auth.emailRequired');
   } else if (normalizedEmail.length > 320) {
-    errors.email = 'Email must not exceed 320 characters.';
+    errors.email = t('auth.emailTooLong');
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    errors.email = 'Enter a valid email address.';
+    errors.email = t('auth.emailInvalid');
   }
 
   if (!password.trim()) {
-    errors.password = 'Password is required.';
+    errors.password = t('auth.passwordRequired');
   } else if (password.length < 8 || password.length > 72) {
-    errors.password = 'Password must contain between 8 and 72 characters.';
+    errors.password = t('auth.passwordLength');
   }
 
   return errors;
@@ -45,27 +47,28 @@ function getServerFieldErrors(error: unknown): FieldErrors {
   }, {});
 }
 
-function getSubmissionMessage(error: unknown) {
+function getSubmissionMessage(error: unknown, t: I18nContextValue['t']) {
   if (error instanceof HttpError && error.status === 409) {
-    return 'An account with this email already exists.';
+    return t('auth.emailConflict');
   }
 
   if (error instanceof NetworkError) {
-    return 'Unable to reach CodeProgress. Check your connection and try again.';
+    return t('auth.networkError');
   }
 
   if (error instanceof ResponseFormatError) {
-    return 'CodeProgress returned an unexpected response. Please try again.';
+    return t('auth.responseError');
   }
 
   if (error instanceof HttpError) {
-    return error.apiError?.message ?? 'Account creation failed. Please try again.';
+    return t('auth.registerFailed');
   }
 
-  return 'Account creation failed. Please try again.';
+  return t('auth.registerFailed');
 }
 
 export function RegisterForm() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +83,7 @@ export function RegisterForm() {
       return;
     }
 
-    const validationErrors = validate(email, password);
+    const validationErrors = validate(email, password, t);
     setFieldErrors(validationErrors);
     setSubmissionError(null);
 
@@ -101,7 +104,7 @@ export function RegisterForm() {
         const serverFieldErrors = getServerFieldErrors(error);
         setFieldErrors(serverFieldErrors);
         setSubmissionError(
-          Object.keys(serverFieldErrors).length > 0 ? null : getSubmissionMessage(error),
+          Object.keys(serverFieldErrors).length > 0 ? null : getSubmissionMessage(error, t),
         );
       }
     } finally {
@@ -112,7 +115,7 @@ export function RegisterForm() {
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.field}>
-        <label htmlFor="register-email">Email</label>
+        <label htmlFor="register-email">{t('auth.email')}</label>
         <input
           id="register-email"
           name="email"
@@ -138,8 +141,8 @@ export function RegisterForm() {
 
       <div className={styles.field}>
         <div className={styles.labelRow}>
-          <label htmlFor="register-password">Password</label>
-          <span>8–72 characters</span>
+          <label htmlFor="register-password">{t('auth.password')}</label>
+          <span>{t('auth.passwordHint')}</span>
         </div>
         <input
           id="register-password"
@@ -172,7 +175,7 @@ export function RegisterForm() {
       ) : null}
 
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Creating account…' : 'Create account'}
+        {isSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
       </button>
     </form>
   );

@@ -65,11 +65,21 @@ function taskCard(page: Page, title: string) {
     });
 }
 
+async function openTopicAction(page: Page, name: string) {
+  await page.getByRole('button', { name: 'Topic actions' }).click();
+  await page.getByRole('menuitem', { name }).click();
+}
+
+async function openTaskAction(page: Page, name: string) {
+  await page.getByRole('button', { name: 'Task actions' }).click();
+  await page.getByRole('menuitem', { name }).click();
+}
+
 async function deleteTask(page: Page, id: number, title: string) {
   const deletePath = createdResourceApiPath('task', id);
   await page.getByRole('link', { name: title }).click();
   await expect(page).toHaveURL(new RegExp(`/app/tasks/${id}$`));
-  await page.getByRole('button', { name: 'Delete LearningTask' }).click();
+  await openTaskAction(page, 'Delete LearningTask');
   await expectMutation(page, 'DELETE', deletePath, 204, () =>
     page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click(),
   );
@@ -110,7 +120,7 @@ test('registers one synthetic account and verifies the in-memory auth lifecycle'
   await page.keyboard.press('Enter');
   expect((await login).status()).toBe(200);
   expect((await me).status()).toBe(200);
-  await expect(page).toHaveURL(/\/app$/);
+  await expect(page).toHaveURL(/\/app\/dashboard$/);
   expect(
     await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length })),
   ).toEqual({ local: 0, session: 0 });
@@ -170,7 +180,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   await page.getByRole('link', { name: topicTitle }).click();
   await expect(page).toHaveURL(new RegExp(`/app/topics/${topicId}$`));
 
-  await page.getByRole('button', { name: 'Edit' }).click();
+  await openTopicAction(page, 'Edit');
   const topicEdit = page
     .getByRole('heading', { name: 'Update topic' })
     .locator('..')
@@ -182,7 +192,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   );
   await expect(page.getByRole('heading', { name: updatedTopicTitle })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Change Status' }).click();
+  await openTopicAction(page, 'Change Status');
   const topicStatusForm = page.getByRole('region', { name: 'Change topic status' }).locator('form');
   await topicStatusForm
     .getByRole('combobox', { name: 'Status', exact: true })
@@ -196,8 +206,8 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   );
   await expect(page.locator('[data-status="IN_PROGRESS"]')).toContainText('In progress');
 
-  const topicDeleteTrigger = page.getByRole('button', { name: 'Delete Topic' });
-  await topicDeleteTrigger.click();
+  const topicDeleteTrigger = page.getByRole('button', { name: 'Topic actions' });
+  await openTopicAction(page, 'Delete Topic');
   await expectDialogKeyboard(
     page.getByRole('dialog', { name: 'Delete Topic?' }),
     page,
@@ -210,7 +220,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
 
   await page.getByRole('link', { name: taskATitle }).click();
   await expect(page).toHaveURL(new RegExp(`/app/tasks/${taskAId}$`));
-  await page.getByRole('button', { name: 'Edit details' }).click();
+  await openTaskAction(page, 'Edit details');
   const taskEdit = page
     .getByRole('heading', { name: 'Update learning task' })
     .locator('..')
@@ -223,7 +233,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   );
   await expect(page.getByRole('heading', { name: updatedTaskATitle })).toBeVisible();
 
-  await page.getByRole('button', { name: 'Change status' }).click();
+  await openTaskAction(page, 'Change status');
   const taskStatusForm = page.getByRole('region', { name: 'Change task status' }).locator('form');
   await taskStatusForm
     .getByRole('combobox', { name: 'Status', exact: true })
@@ -233,7 +243,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   );
   await expect(page.locator('[data-status="IN_PROGRESS"]')).toContainText('In progress');
 
-  await page.getByRole('button', { name: 'Edit planning' }).click();
+  await openTaskAction(page, 'Edit planning');
   let planningForm = page
     .getByRole('region', { name: 'Update deadline and priority' })
     .locator('form');
@@ -246,7 +256,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
     200,
     () => planningForm.getByRole('button', { name: 'Save planning' }).click(),
   );
-  await page.getByRole('button', { name: 'Edit planning' }).click();
+  await openTaskAction(page, 'Edit planning');
   planningForm = page.getByRole('region', { name: 'Update deadline and priority' }).locator('form');
   await planningForm.getByLabel('Deadline (optional)', { exact: true }).fill('');
   await planningForm.getByRole('combobox', { name: 'Priority', exact: true }).selectOption('LOW');
@@ -259,8 +269,8 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
   );
   await expect(page.getByText('No deadline', { exact: true })).toBeVisible();
 
-  const taskDeleteTrigger = page.getByRole('button', { name: 'Delete LearningTask' });
-  await taskDeleteTrigger.click();
+  const taskDeleteTrigger = page.getByRole('button', { name: 'Task actions' });
+  await openTaskAction(page, 'Delete LearningTask');
   await expectDialogKeyboard(
     page.getByRole('dialog', { name: 'Delete LearningTask?' }),
     page,
@@ -358,7 +368,7 @@ test('runs the approved Topic, LearningTask, StudySession and Dashboard flow', a
 
   await deleteTask(page, taskAId, updatedTaskATitle);
   await deleteTask(page, taskBId, taskBTitle);
-  await page.getByRole('button', { name: 'Delete Topic' }).click();
+  await openTopicAction(page, 'Delete Topic');
   await expectMutation(page, 'DELETE', createdResourceApiPath('topic', topicId), 204, () =>
     page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click(),
   );

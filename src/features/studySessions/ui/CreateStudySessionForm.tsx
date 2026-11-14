@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { HttpError } from '../../../shared/api/apiError';
 import type { LearningTaskResponse } from '../../learningTasks/api/learningTasksApi';
 import { isLocalDate } from '../../learningTasks/lib/localDate';
-import { learningTaskStatusLabels } from '../../learningTasks/model/learningTaskMetadata';
 import {
   STUDY_SESSION_DURATION_MAX,
   STUDY_SESSION_NOTE_MAX_LENGTH,
@@ -10,6 +9,8 @@ import {
 } from '../api/studySessionsApi';
 import { getStudySessionErrorMessage } from '../lib/studySessionErrors';
 import styles from './CreateStudySessionForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizeTaskStatus } from '../../../shared/i18n/domainLabels';
 
 type CreateStudySessionFormProps = {
   tasks: LearningTaskResponse[];
@@ -49,6 +50,7 @@ export function CreateStudySessionForm({
   onCancel,
   onSubmit,
 }: CreateStudySessionFormProps) {
+  const { t } = useI18n();
   const [sessionDate, setSessionDate] = useState('');
   const [durationMinutes, setDurationMinutes] = useState('');
   const [note, setNote] = useState('');
@@ -64,23 +66,23 @@ export function CreateStudySessionForm({
 
     const nextErrors: FieldErrors = {};
     if (!isLocalDate(sessionDate)) {
-      nextErrors.sessionDate = 'Enter a valid session date.';
+      nextErrors.sessionDate = t('sessions.dateInvalid');
     }
 
     const duration = Number(durationMinutes);
     if (!/^\d+$/.test(durationMinutes) || !Number.isSafeInteger(duration) || duration < 1) {
-      nextErrors.durationMinutes = 'Enter a whole number greater than zero.';
+      nextErrors.durationMinutes = t('sessions.durationInvalid');
     } else if (duration > STUDY_SESSION_DURATION_MAX) {
-      nextErrors.durationMinutes = `Use ${STUDY_SESSION_DURATION_MAX} minutes or fewer.`;
+      nextErrors.durationMinutes = t('sessions.maxMinutes', { count: STUDY_SESSION_DURATION_MAX });
     }
 
     if (note.length > STUDY_SESSION_NOTE_MAX_LENGTH) {
-      nextErrors.note = `Use ${STUDY_SESSION_NOTE_MAX_LENGTH} characters or fewer.`;
+      nextErrors.note = t('common.maxCharacters', { count: STUDY_SESSION_NOTE_MAX_LENGTH });
     }
 
     const availableTaskIds = new Set(tasks.map((task) => task.id));
     if (completedTaskIds.some((taskId) => !availableTaskIds.has(taskId))) {
-      nextErrors.completedTaskIds = 'Refresh the topic and choose available tasks again.';
+      nextErrors.completedTaskIds = t('sessions.refreshTasks');
     }
 
     setFieldErrors(nextErrors);
@@ -104,9 +106,7 @@ export function CreateStudySessionForm({
       if (error instanceof HttpError) {
         setFieldErrors(getBackendFieldErrors(error));
       }
-      setSubmissionError(
-        getStudySessionErrorMessage(error, 'The study session could not be created. Try again.'),
-      );
+      setSubmissionError(getStudySessionErrorMessage(error, t('sessions.createError'), t));
     }
   }
 
@@ -118,7 +118,7 @@ export function CreateStudySessionForm({
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.fieldGrid}>
         <div className={styles.field}>
-          <label htmlFor="study-session-date">Session date</label>
+          <label htmlFor="study-session-date">{t('sessions.date')}</label>
           <input
             id="study-session-date"
             name="sessionDate"
@@ -139,7 +139,7 @@ export function CreateStudySessionForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="study-session-duration">Duration (minutes)</label>
+          <label htmlFor="study-session-duration">{t('sessions.durationMinutes')}</label>
           <input
             id="study-session-duration"
             name="durationMinutes"
@@ -164,7 +164,7 @@ export function CreateStudySessionForm({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="study-session-note">Notes (optional)</label>
+        <label htmlFor="study-session-note">{t('sessions.notesOptional')}</label>
         <textarea
           id="study-session-note"
           name="note"
@@ -177,7 +177,7 @@ export function CreateStudySessionForm({
           disabled={isPending}
         />
         <p id="study-session-note-hint" className={styles.hint}>
-          Up to {STUDY_SESSION_NOTE_MAX_LENGTH} characters.
+          {t('sessions.upToCharacters', { count: STUDY_SESSION_NOTE_MAX_LENGTH })}
         </p>
         {fieldErrors.note ? (
           <p id={errorId('note')} className={styles.error} role="alert">
@@ -191,19 +191,18 @@ export function CreateStudySessionForm({
         aria-describedby="study-session-tasks-hint"
         disabled={isPending || areTasksLoading || tasksUnavailable}
       >
-        <legend>Tasks completed during this session (optional)</legend>
+        <legend>{t('sessions.completedOptional')}</legend>
         <p id="study-session-tasks-hint" className={styles.hint}>
-          Selected tasks are recorded in session history. Tasks not already complete are moved to
-          Completed atomically by API v1.0.0.
+          {t('sessions.completionHint')}
         </p>
-        {areTasksLoading ? <p className={styles.taskNotice}>Loading available tasks…</p> : null}
+        {areTasksLoading ? <p className={styles.taskNotice}>{t('sessions.loadingTasks')}</p> : null}
         {tasksUnavailable ? (
           <p className={styles.taskNotice} role="alert">
-            Tasks are unavailable. You can still save this session without completed tasks.
+            {t('sessions.tasksUnavailable')}
           </p>
         ) : null}
         {!areTasksLoading && !tasksUnavailable && tasks.length === 0 ? (
-          <p className={styles.taskNotice}>This topic has no learning tasks to select.</p>
+          <p className={styles.taskNotice}>{t('sessions.noTasksToSelect')}</p>
         ) : null}
         {!areTasksLoading && !tasksUnavailable && tasks.length > 0 ? (
           <div className={styles.taskOptions}>
@@ -224,7 +223,7 @@ export function CreateStudySessionForm({
                 />
                 <span>
                   <strong>{task.title}</strong>
-                  <small>{learningTaskStatusLabels[task.status]}</small>
+                  <small>{localizeTaskStatus(t, task.status)}</small>
                 </span>
               </label>
             ))}
@@ -245,10 +244,10 @@ export function CreateStudySessionForm({
 
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Saving session…' : 'Save session'}
+          {isPending ? t('sessions.saving') : t('sessions.save')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

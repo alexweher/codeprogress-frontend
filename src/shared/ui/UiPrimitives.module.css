@@ -1,0 +1,151 @@
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.7rem;
+  padding: 0.25rem 0.62rem;
+  border-radius: 999px;
+  color: var(--badge-ink);
+  background: var(--badge-bg);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.025em;
+}
+
+.primary {
+  --badge-ink: var(--color-primary-strong);
+  --badge-bg: var(--color-primary-soft);
+}
+
+.success {
+  --badge-ink: var(--color-success-strong);
+  --badge-bg: var(--color-success-soft);
+}
+
+.info {
+  --badge-ink: #265b95;
+  --badge-bg: var(--color-info-soft);
+}
+
+.warning {
+  --badge-ink: #815b12;
+  --badge-bg: var(--color-warning-soft);
+}
+
+.neutral {
+  --badge-ink: var(--color-text-muted);
+  --badge-bg: var(--color-surface-muted);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.9rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: white;
+  font-weight: 850;
+  text-decoration: none;
+  box-shadow: 0 0.55rem 1.2rem rgba(103, 75, 221, 0.2);
+}
+
+.button:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.progress {
+  width: 100%;
+  height: 0.58rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary), #8d78ed);
+}
+
+.emptyState {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.35rem;
+  border: 1px dashed color-mix(in srgb, var(--color-primary) 32%, var(--color-border));
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-primary-soft) 42%, var(--color-surface));
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 1rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.emptyState h2,
+.emptyState p {
+  margin: 0;
+}
+
+.emptyState h2 {
+  color: var(--color-text-strong);
+  font-size: 1.1rem;
+}
+
+.emptyState p {
+  margin-top: 0.35rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.skeleton {
+  display: block;
+  border-radius: 0.85rem;
+  background: linear-gradient(
+    100deg,
+    var(--color-surface-muted) 30%,
+    var(--color-surface) 50%,
+    var(--color-surface-muted) 70%
+  );
+  background-size: 220% 100%;
+  animation: ui-shimmer 1.4s linear infinite;
+}
+
+@keyframes ui-shimmer {
+  to {
+    background-position-x: -220%;
+  }
+}
+
+@media (max-width: 600px) {
+  .emptyState {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .emptyState > :last-child:not(div) {
+    grid-column: 1 / -1;
+  }
+}

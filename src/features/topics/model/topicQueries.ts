@@ -58,10 +58,11 @@ export function useCreateTopic(userId: number) {
   });
 }
 
-export function useTopic(userId: number, topicId: number) {
+export function useTopic(userId: number, topicId: number, enabled = true) {
   return useQuery({
     queryKey: topicQueryKeys.detail(userId, topicId),
     queryFn: ({ signal }) => getTopic(topicId, signal),
+    enabled,
   });
 }
 

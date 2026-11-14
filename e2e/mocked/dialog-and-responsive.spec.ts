@@ -7,8 +7,9 @@ test('traps dialog focus, closes with Escape and restores trigger focus', async 
   await signIn(page);
   await page.getByRole('link', { name: /Topics/ }).click();
   await page.getByRole('link', { name: 'Browser testing foundations' }).click();
-  const trigger = page.getByRole('button', { name: 'Delete Topic' });
+  const trigger = page.getByRole('button', { name: 'Topic actions' });
   await trigger.click();
+  await page.getByRole('menuitem', { name: 'Delete Topic' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Delete Topic?' });
   const cancel = dialog.getByRole('button', { name: 'Cancel' });

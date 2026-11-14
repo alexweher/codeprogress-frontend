@@ -13,28 +13,28 @@ import {
   useUpdateTopic,
   useUpdateTopicStatus,
 } from '../../features/topics/model/topicQueries';
-import { topicStatusLabels } from '../../features/topics/model/topicStatus';
 import { EditTopicForm } from '../../features/topics/ui/EditTopicForm';
 import { DeleteTopicDialog } from '../../features/topics/ui/DeleteTopicDialog';
 import { TopicStatusForm } from '../../features/topics/ui/TopicStatusForm';
 import { HttpError, NetworkError, RequestAbortedError } from '../../shared/api/apiError';
 import styles from './TopicDetailsPage.module.css';
-
-function formatLocalDateTime(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
-  return match ? `${match[3]}.${match[2]}.${match[1]}, ${match[4]}:${match[5]}` : value;
-}
+import { useI18n } from '../../shared/i18n/useI18n';
+import { localizeTopicStatus } from '../../shared/i18n/domainLabels';
+import { formatLocalDateTimeForLocale } from '../../shared/i18n/format';
+import { Progress } from '../../shared/ui/UiPrimitives';
+import { ActionMenu } from '../../shared/ui/ActionMenu';
 
 function InvalidTopicPage() {
+  const { t } = useI18n();
   return (
     <main className={styles.page}>
       <Link className={styles.backLink} to="/app/topics">
-        ← Back to Topics
+        {t('common.backToTopics')}
       </Link>
       <section className={styles.messageState} role="alert">
-        <p className={styles.eyebrow}>Invalid topic</p>
-        <h1>This topic address is not valid</h1>
-        <p>Open a topic from your Topics list and try again.</p>
+        <p className={styles.eyebrow}>{t('topics.invalid')}</p>
+        <h1>{t('topics.invalidTitle')}</h1>
+        <p>{t('topics.invalidText')}</p>
       </section>
     </main>
   );
@@ -46,6 +46,15 @@ function isTaskDeletionSuccessState(value: unknown): value is { learningTaskDele
     value !== null &&
     'learningTaskDeleted' in value &&
     value.learningTaskDeleted === true
+  );
+}
+
+function isCreateTaskState(value: unknown): value is { openCreateTask: true } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'openCreateTask' in value &&
+    value.openCreateTask === true
   );
 }
 
@@ -68,6 +77,7 @@ function getSessionDeletionSuccessState(
 }
 
 function TopicDetails({ topicId }: { topicId: number }) {
+  const { locale, t } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,6 +88,8 @@ function TopicDetails({ topicId }: { topicId: number }) {
   const statusMutation = useUpdateTopicStatus(userId, topicId);
   const deleteMutation = useDeleteTopic(userId, topicId);
   const [openAction, setOpenAction] = useState<'edit' | 'status' | null>(null);
+  const [taskMetrics, setTaskMetrics] = useState({ completed: 0, total: 0 });
+  const [sessionMetrics, setSessionMetrics] = useState({ minutes: 0, total: 0 });
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<{
@@ -97,16 +109,24 @@ function TopicDetails({ topicId }: { topicId: number }) {
     }
   }, [deletedSessionId, queryClient, userId]);
 
+  useEffect(() => {
+    if (!topicQuery.isSuccess || location.hash !== '#study-sessions') return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById('study-sessions')?.scrollIntoView({ block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.hash, topicQuery.isSuccess]);
+
   if (topicQuery.isPending) {
     return (
       <main className={styles.page} aria-busy="true">
         <Link className={styles.backLink} to="/app/topics">
-          ← Back to Topics
+          {t('common.backToTopics')}
         </Link>
         <div className={styles.loadingState} role="status">
           <span />
           <span />
-          <p>Loading topic…</p>
+          <p>{t('topics.loadingDetails')}</p>
         </div>
       </main>
     );
@@ -117,18 +137,20 @@ function TopicDetails({ topicId }: { topicId: number }) {
     return (
       <main className={styles.page}>
         <Link className={styles.backLink} to="/app/topics">
-          ← Back to Topics
+          {t('common.backToTopics')}
         </Link>
         <section className={styles.messageState} role="alert">
-          <p className={styles.eyebrow}>{notFound ? 'Topic not found' : 'Unable to load topic'}</p>
-          <h1>{notFound ? 'This topic is unavailable' : 'Topic details are unavailable'}</h1>
+          <p className={styles.eyebrow}>
+            {notFound ? t('topics.notFound') : t('topics.unableLoad')}
+          </p>
+          <h1>{notFound ? t('topics.unavailableTitle') : t('topics.detailsUnavailable')}</h1>
           <p>
             {notFound
-              ? 'The topic does not exist or does not belong to your account.'
-              : getTopicErrorMessage(topicQuery.error, 'The topic could not be loaded.')}
+              ? t('topics.notFoundText')
+              : getTopicErrorMessage(topicQuery.error, t('topics.loadDetailsError'), t)}
           </p>
           <button type="button" onClick={() => void topicQuery.refetch()}>
-            Retry
+            {t('common.retry')}
           </button>
         </section>
       </main>
@@ -136,17 +158,21 @@ function TopicDetails({ topicId }: { topicId: number }) {
   }
 
   const topic = topicQuery.data;
+  const completedTasks = taskMetrics.completed;
+  const totalTasks = taskMetrics.total;
+  const completionPercent = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const studyMinutes = sessionMetrics.minutes;
 
   async function handleUpdate(request: Parameters<typeof updateMutation.mutateAsync>[0]) {
     await updateMutation.mutateAsync(request);
     setOpenAction(null);
-    setSuccessMessage('Topic details updated.');
+    setSuccessMessage(t('topics.detailsUpdated'));
   }
 
   async function handleStatusChange(request: Parameters<typeof statusMutation.mutateAsync>[0]) {
     await statusMutation.mutateAsync(request);
     setOpenAction(null);
-    setSuccessMessage('Topic status changed.');
+    setSuccessMessage(t('topics.statusUpdated'));
   }
 
   function closeDeleteDialog() {
@@ -175,24 +201,22 @@ function TopicDetails({ topicId }: { topicId: number }) {
 
       if (error instanceof HttpError && error.status === 409) {
         setDeleteError({
-          message:
-            'This topic cannot be deleted because it has learning tasks or study sessions. Related data must remain intact.',
+          message: t('topics.deleteConflict'),
           recoveryAction: null,
         });
       } else if (error instanceof HttpError && error.status === 404) {
         setDeleteError({
-          message: 'This topic is already absent or is no longer available to your account.',
+          message: t('topics.deleteMissing'),
           recoveryAction: 'back',
         });
       } else if (error instanceof NetworkError) {
         setDeleteError({
-          message:
-            'The server could not be reached, so CodeProgress cannot confirm whether the topic was deleted. Check its current state before trying again.',
+          message: t('topics.deleteNetwork'),
           recoveryAction: 'check',
         });
       } else {
         setDeleteError({
-          message: getTopicErrorMessage(error, 'The topic could not be deleted.'),
+          message: getTopicErrorMessage(error, t('topics.deleteError'), t),
           recoveryAction: 'check',
         });
       }
@@ -201,27 +225,35 @@ function TopicDetails({ topicId }: { topicId: number }) {
 
   return (
     <main className={styles.page}>
-      <Link className={styles.backLink} to="/app/topics">
-        ← Back to Topics
-      </Link>
+      <nav className={styles.breadcrumbs} aria-label={t('topics.breadcrumb')}>
+        <Link to="/app/topics" aria-label={t('common.backToTopics')}>
+          {t('topics.title')}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{topic.title}</span>
+      </nav>
 
       <header className={styles.pageHeader}>
-        <div>
-          <p className={styles.eyebrow}>Topic details</p>
+        <span className={styles.topicMark} aria-hidden="true">
+          {topic.title.slice(0, 1).toUpperCase()}
+        </span>
+        <div className={styles.headerCopy}>
+          <p className={styles.eyebrow}>{t('topics.details')}</p>
           <h1>{topic.title}</h1>
+          <p>{topic.description || t('common.noDescription')}</p>
         </div>
         <span className={styles.status} data-status={topic.status}>
-          {topicStatusLabels[topic.status]}
+          {localizeTopicStatus(t, topic.status)}
         </span>
       </header>
 
       {sessionDeletionState ? (
         <p className={styles.successMessage} role="status">
-          Study session deleted successfully.
+          {t('sessions.deleted')}
         </p>
       ) : isTaskDeletionSuccessState(location.state as unknown) ? (
         <p className={styles.successMessage} role="status">
-          Learning task deleted successfully.
+          {t('tasks.deleted')}
         </p>
       ) : successMessage ? (
         <p className={styles.successMessage} role="status">
@@ -229,102 +261,133 @@ function TopicDetails({ topicId }: { topicId: number }) {
         </p>
       ) : null}
 
-      <section className={styles.detailsCard} aria-labelledby="topic-overview-title">
-        <div className={styles.sectionHeading}>
-          <div>
-            <p className={styles.eyebrow}>Overview</p>
-            <h2 id="topic-overview-title">About this topic</h2>
-          </div>
-          <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={() => {
-                setOpenAction('edit');
-                setSuccessMessage(null);
-              }}
-              disabled={updateMutation.isPending || statusMutation.isPending}
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setOpenAction('status');
-                setSuccessMessage(null);
-              }}
-              disabled={updateMutation.isPending || statusMutation.isPending}
-            >
-              Change Status
-            </button>
-            <button
-              ref={deleteButtonRef}
-              className={styles.deleteTopicButton}
-              type="button"
-              onClick={() => {
-                deleteMutation.reset();
-                setDeleteError(null);
-                setOpenAction(null);
-                setSuccessMessage(null);
-                setIsDeleteDialogOpen(true);
-              }}
-              disabled={
-                updateMutation.isPending || statusMutation.isPending || deleteMutation.isPending
-              }
-            >
-              Delete Topic
-            </button>
-          </div>
+      <div className={styles.contentGrid}>
+        <div className={styles.primaryColumn}>
+          <LearningTasksSection
+            userId={userId}
+            topicId={topicId}
+            initialCreateOpen={isCreateTaskState(location.state as unknown)}
+            onMetricsChange={setTaskMetrics}
+          />
+          <StudySessionsSection
+            userId={userId}
+            topicId={topicId}
+            onMetricsChange={setSessionMetrics}
+          />
         </div>
+        <aside className={styles.sideColumn} aria-label={t('topics.overview')}>
+          <section className={styles.detailsCard} aria-labelledby="topic-overview-title">
+            <div className={styles.sectionHeading}>
+              <div>
+                <p className={styles.eyebrow}>{t('topics.overview')}</p>
+                <h2 id="topic-overview-title">{t('topics.about')}</h2>
+              </div>
+              <ActionMenu
+                label={t('topics.actions')}
+                triggerRef={deleteButtonRef}
+                items={[
+                  {
+                    label: t('common.edit'),
+                    disabled: updateMutation.isPending || statusMutation.isPending,
+                    onSelect: () => {
+                      setOpenAction('edit');
+                      setSuccessMessage(null);
+                    },
+                  },
+                  {
+                    label: t('topics.changeStatus'),
+                    disabled: updateMutation.isPending || statusMutation.isPending,
+                    onSelect: () => {
+                      setOpenAction('status');
+                      setSuccessMessage(null);
+                    },
+                  },
+                  {
+                    label: t('topics.delete'),
+                    danger: true,
+                    disabled: deleteMutation.isPending,
+                    onSelect: () => {
+                      deleteMutation.reset();
+                      setDeleteError(null);
+                      setOpenAction(null);
+                      setSuccessMessage(null);
+                      setIsDeleteDialogOpen(true);
+                    },
+                  },
+                ]}
+              />
+            </div>
 
-        <p className={topic.description ? styles.description : styles.emptyDescription}>
-          {topic.description || 'No description provided.'}
-        </p>
+            <div className={styles.statGrid}>
+              <div>
+                <strong>
+                  {completedTasks}/{totalTasks}
+                </strong>
+                <span>{t('topics.tasksComplete')}</span>
+              </div>
+              <div>
+                <strong>{studyMinutes}</strong>
+                <span>{t('dashboard.minutesUnit')}</span>
+              </div>
+              <div>
+                <strong>{sessionMetrics.total}</strong>
+                <span>{t('dashboard.sessions')}</span>
+              </div>
+            </div>
+            <Progress
+              value={completionPercent}
+              label={t('dashboard.progressAria', { percent: completionPercent })}
+            />
+            <p className={styles.statusNote}>{t('topics.statusIndependent')}</p>
 
-        <dl className={styles.metadata}>
-          <div>
-            <dt>Created</dt>
-            <dd>
-              <time dateTime={topic.createdAt}>{formatLocalDateTime(topic.createdAt)}</time>
-            </dd>
-          </div>
-          <div>
-            <dt>Last updated</dt>
-            <dd>
-              <time dateTime={topic.updatedAt}>{formatLocalDateTime(topic.updatedAt)}</time>
-            </dd>
-          </div>
-        </dl>
-      </section>
+            <dl className={styles.metadata}>
+              <div>
+                <dt>{t('common.created')}</dt>
+                <dd>
+                  <time dateTime={topic.createdAt}>
+                    {formatLocalDateTimeForLocale(topic.createdAt, locale)}
+                  </time>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('common.lastUpdated')}</dt>
+                <dd>
+                  <time dateTime={topic.updatedAt}>
+                    {formatLocalDateTimeForLocale(topic.updatedAt, locale)}
+                  </time>
+                </dd>
+              </div>
+            </dl>
+          </section>
 
-      {openAction === 'edit' ? (
-        <section className={styles.actionCard} aria-labelledby="edit-topic-heading">
-          <p className={styles.eyebrow}>Edit details</p>
-          <h2 id="edit-topic-heading">Update topic</h2>
-          <EditTopicForm
-            topic={topic}
-            isPending={updateMutation.isPending}
-            onCancel={() => setOpenAction(null)}
-            onSubmit={handleUpdate}
-          />
-        </section>
-      ) : null}
+          {openAction === 'edit' ? (
+            <section className={styles.actionCard} aria-labelledby="edit-topic-heading">
+              <p className={styles.eyebrow}>{t('topics.editDetails')}</p>
+              <h2 id="edit-topic-heading">{t('topics.update')}</h2>
+              <EditTopicForm
+                topic={topic}
+                isPending={updateMutation.isPending}
+                onCancel={() => setOpenAction(null)}
+                onSubmit={handleUpdate}
+              />
+            </section>
+          ) : null}
 
-      {openAction === 'status' ? (
-        <section className={styles.actionCard} aria-labelledby="status-topic-heading">
-          <p className={styles.eyebrow}>Learning state</p>
-          <h2 id="status-topic-heading">Change topic status</h2>
-          <p className={styles.actionHint}>All status transitions are supported by API v1.0.0.</p>
-          <TopicStatusForm
-            currentStatus={topic.status}
-            isPending={statusMutation.isPending}
-            onCancel={() => setOpenAction(null)}
-            onSubmit={handleStatusChange}
-          />
-        </section>
-      ) : null}
-
-      <LearningTasksSection userId={userId} topicId={topicId} />
-      <StudySessionsSection userId={userId} topicId={topicId} />
+          {openAction === 'status' ? (
+            <section className={styles.actionCard} aria-labelledby="status-topic-heading">
+              <p className={styles.eyebrow}>{t('topics.learningState')}</p>
+              <h2 id="status-topic-heading">{t('topics.changeStatus')}</h2>
+              <p className={styles.actionHint}>{t('topics.transitionHint')}</p>
+              <TopicStatusForm
+                currentStatus={topic.status}
+                isPending={statusMutation.isPending}
+                onCancel={() => setOpenAction(null)}
+                onSubmit={handleStatusChange}
+              />
+            </section>
+          ) : null}
+        </aside>
+      </div>
 
       {isDeleteDialogOpen ? (
         <DeleteTopicDialog

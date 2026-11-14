@@ -1,10 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { LoginForm } from '../../features/auth/ui/LoginForm';
 import styles from './LoginPage.module.css';
+import { useI18n } from '../../shared/i18n/useI18n';
 
 type RegistrationState = {
   registeredEmail: string;
 };
+
+function getProtectedRedirect(value: unknown) {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'from' in value &&
+    typeof value.from === 'string' &&
+    value.from.startsWith('/app/')
+  ) {
+    return value.from;
+  }
+  return '/app/dashboard';
+}
 
 function getRegistrationState(value: unknown): RegistrationState | null {
   if (
@@ -20,6 +34,7 @@ function getRegistrationState(value: unknown): RegistrationState | null {
 }
 
 export function LoginPage() {
+  const { t } = useI18n();
   const location = useLocation();
   const registrationState = getRegistrationState(location.state);
 
@@ -33,30 +48,25 @@ export function LoginPage() {
           <span>CodeProgress</span>
         </div>
         <div>
-          <p className={styles.eyebrow}>Continue learning</p>
-          <h1 id="login-title">Welcome back.</h1>
-          <p className={styles.lead}>
-            Sign in to return to your programming topics, study sessions, and progress.
-          </p>
+          <p className={styles.eyebrow}>{t('auth.continueLearning')}</p>
+          <h1 id="login-title">{t('auth.welcomeBack')}</h1>
+          <p className={styles.lead}>{t('auth.loginLead')}</p>
         </div>
-        <p className={styles.securityNote}>
-          Your session stays in this browser tab and is cleared when the page reloads.
-        </p>
+        <p className={styles.securityNote}>{t('auth.sessionNote')}</p>
       </section>
 
       <section className={styles.card} aria-labelledby="form-title">
         <div className={styles.cardHeading}>
-          <p>Secure access</p>
-          <h2 id="form-title">Sign in to CodeProgress</h2>
+          <p>{t('auth.secureAccess')}</p>
+          <h2 id="form-title">{t('auth.signInTitle')}</h2>
         </div>
         <LoginForm
           initialEmail={registrationState?.registeredEmail}
-          successMessage={
-            registrationState ? 'Account created. Sign in with your new credentials.' : undefined
-          }
+          successMessage={registrationState ? t('auth.registerSuccess') : undefined}
+          redirectTo={getProtectedRedirect(location.state)}
         />
         <p className={styles.secondaryAction}>
-          New to CodeProgress? <Link to="/register">Create an account</Link>
+          {t('auth.newUser')} <Link to="/register">{t('auth.createAccountLink')}</Link>
         </p>
       </section>
     </main>

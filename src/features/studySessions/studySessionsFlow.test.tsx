@@ -128,13 +128,10 @@ async function signInAndOpenTopic(
   waitForDetails = true,
 ) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/topics/7', queryClient);
   await view.user.type(screen.getByLabelText('Email'), currentUser.email);
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
   if (waitForDetails) {
     await screen.findByRole('heading', { name: topic.title });
   }

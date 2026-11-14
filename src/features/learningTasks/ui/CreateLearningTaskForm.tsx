@@ -11,11 +11,11 @@ import {
   isLearningTaskDifficulty,
   isLearningTaskPriority,
   learningTaskDifficulties,
-  learningTaskDifficultyLabels,
   learningTaskPriorities,
-  learningTaskPriorityLabels,
 } from '../model/learningTaskMetadata';
 import styles from './CreateLearningTaskForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizeDifficulty, localizePriority } from '../../../shared/i18n/domainLabels';
 
 type CreateLearningTaskFormProps = {
   isPending: boolean;
@@ -49,6 +49,7 @@ export function CreateLearningTaskForm({
   onCancel,
   onSubmit,
 }: CreateLearningTaskFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [difficulty, setDifficulty] = useState('');
@@ -66,21 +67,23 @@ export function CreateLearningTaskForm({
 
     const nextErrors: FieldErrors = {};
     if (title.trim().length === 0) {
-      nextErrors.title = 'Enter a task title.';
+      nextErrors.title = t('tasks.titleRequired');
     } else if (title.length > LEARNING_TASK_TITLE_MAX_LENGTH) {
-      nextErrors.title = `Use ${LEARNING_TASK_TITLE_MAX_LENGTH} characters or fewer.`;
+      nextErrors.title = t('common.maxCharacters', { count: LEARNING_TASK_TITLE_MAX_LENGTH });
     }
     if (description.length > LEARNING_TASK_DESCRIPTION_MAX_LENGTH) {
-      nextErrors.description = `Use ${LEARNING_TASK_DESCRIPTION_MAX_LENGTH} characters or fewer.`;
+      nextErrors.description = t('common.maxCharacters', {
+        count: LEARNING_TASK_DESCRIPTION_MAX_LENGTH,
+      });
     }
     if (!isLearningTaskDifficulty(difficulty)) {
-      nextErrors.difficulty = 'Choose a difficulty.';
+      nextErrors.difficulty = t('tasks.difficultyRequired');
     }
     if (deadline.length > 0 && !isLocalDate(deadline)) {
-      nextErrors.deadline = 'Enter a valid date.';
+      nextErrors.deadline = t('tasks.dateInvalid');
     }
     if (priority.length > 0 && !isLearningTaskPriority(priority)) {
-      nextErrors.priority = 'Choose a valid priority.';
+      nextErrors.priority = t('tasks.priorityInvalid');
     }
 
     setFieldErrors(nextErrors);
@@ -112,9 +115,7 @@ export function CreateLearningTaskForm({
       if (error instanceof HttpError) {
         setFieldErrors(getBackendFieldErrors(error));
       }
-      setSubmissionError(
-        getLearningTaskErrorMessage(error, 'The learning task could not be created. Try again.'),
-      );
+      setSubmissionError(getLearningTaskErrorMessage(error, t('tasks.loadError'), t));
     }
   }
 
@@ -125,7 +126,7 @@ export function CreateLearningTaskForm({
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.field}>
-        <label htmlFor="learning-task-title">Title</label>
+        <label htmlFor="learning-task-title">{t('tasks.titleLabel')}</label>
         <input
           id="learning-task-title"
           name="title"
@@ -148,7 +149,9 @@ export function CreateLearningTaskForm({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="learning-task-description">Description (optional)</label>
+        <label htmlFor="learning-task-description">
+          {t('tasks.descriptionLabel')} {t('common.optional')}
+        </label>
         <textarea
           id="learning-task-description"
           name="description"
@@ -169,7 +172,7 @@ export function CreateLearningTaskForm({
 
       <div className={styles.fieldGrid}>
         <div className={styles.field}>
-          <label htmlFor="learning-task-difficulty">Difficulty</label>
+          <label htmlFor="learning-task-difficulty">{t('tasks.difficulty')}</label>
           <select
             id="learning-task-difficulty"
             name="difficulty"
@@ -180,10 +183,10 @@ export function CreateLearningTaskForm({
             aria-describedby={errorId('difficulty')}
             disabled={isPending}
           >
-            <option value="">Choose difficulty</option>
+            <option value="">{t('tasks.chooseDifficulty')}</option>
             {learningTaskDifficulties.map((value) => (
               <option key={value} value={value}>
-                {learningTaskDifficultyLabels[value]}
+                {localizeDifficulty(t, value)}
               </option>
             ))}
           </select>
@@ -195,7 +198,9 @@ export function CreateLearningTaskForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="learning-task-deadline">Deadline (optional)</label>
+          <label htmlFor="learning-task-deadline">
+            {t('tasks.deadline')} {t('common.optional')}
+          </label>
           <input
             id="learning-task-deadline"
             name="deadline"
@@ -214,7 +219,9 @@ export function CreateLearningTaskForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="learning-task-priority">Priority (optional)</label>
+          <label htmlFor="learning-task-priority">
+            {t('tasks.priority')} {t('common.optional')}
+          </label>
           <select
             id="learning-task-priority"
             name="priority"
@@ -224,15 +231,15 @@ export function CreateLearningTaskForm({
             aria-describedby={`${errorId('priority') ?? ''} learning-task-priority-hint`.trim()}
             disabled={isPending}
           >
-            <option value="">Backend default (Medium)</option>
+            <option value="">{t('tasks.defaultPriority')}</option>
             {learningTaskPriorities.map((value) => (
               <option key={value} value={value}>
-                {learningTaskPriorityLabels[value]}
+                {localizePriority(t, value)}
               </option>
             ))}
           </select>
           <p id="learning-task-priority-hint" className={styles.hint}>
-            If omitted, API v1.0.0 uses Medium.
+            {t('tasks.defaultPriorityHint')}
           </p>
           {fieldErrors.priority ? (
             <p id={errorId('priority')} className={styles.error} role="alert">
@@ -250,10 +257,10 @@ export function CreateLearningTaskForm({
 
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Creating task…' : 'Create task'}
+          {isPending ? t('tasks.creating') : t('tasks.create')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

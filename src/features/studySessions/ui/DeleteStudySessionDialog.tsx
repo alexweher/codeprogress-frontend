@@ -1,6 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
-import { formatLocalDate } from '../../learningTasks/lib/localDate';
 import styles from '../../topics/ui/DeleteTopicDialog.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { formatLocalDateForLocale } from '../../../shared/i18n/format';
 
 type DeleteStudySessionDialogProps = {
   sessionDate: string;
@@ -23,6 +24,7 @@ export function DeleteStudySessionDialog({
   onConfirm,
   onRecovery,
 }: DeleteStudySessionDialogProps) {
+  const { locale, t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -67,16 +69,16 @@ export function DeleteStudySessionDialog({
         aria-describedby="delete-study-session-description delete-study-session-consequence"
         onKeyDown={handleKeyDown}
       >
-        <p className={styles.eyebrow}>Destructive action</p>
-        <h2 id="delete-study-session-title">Delete study session?</h2>
+        <p className={styles.eyebrow}>{t('common.destructive')}</p>
+        <h2 id="delete-study-session-title">{t('sessions.deleteTitle')}</h2>
         <p className={styles.warning} id="delete-study-session-description">
-          You are about to delete the session from <strong>{formatLocalDate(sessionDate)}</strong> (
-          {durationMinutes} minutes).
+          {t('sessions.deleteDescription', {
+            date: formatLocalDateForLocale(sessionDate, locale),
+            minutes: durationMinutes,
+          })}
         </p>
         <p className={styles.consequence} id="delete-study-session-consequence">
-          This action is permanent. Tasks completed by this session may return to their previous
-          status only when no other study session still completes them. Manually completed tasks
-          remain completed.
+          {t('sessions.deleteConsequence')}
         </p>
 
         {errorMessage ? (
@@ -88,7 +90,7 @@ export function DeleteStudySessionDialog({
         <div className={styles.actions}>
           {recoveryAction ? (
             <button className={styles.secondary} type="button" onClick={onRecovery}>
-              {recoveryAction === 'back' ? 'Back to Topic' : 'Check session state'}
+              {recoveryAction === 'back' ? t('common.backToTopicButton') : t('sessions.checkState')}
             </button>
           ) : null}
           <button
@@ -98,10 +100,10 @@ export function DeleteStudySessionDialog({
             onClick={onCancel}
             disabled={isPending}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button className={styles.delete} type="button" onClick={onConfirm} disabled={isPending}>
-            {isPending ? 'Deleting…' : 'Delete'}
+            {isPending ? t('common.deleting') : t('common.delete')}
           </button>
         </div>
       </div>

@@ -118,14 +118,10 @@ async function signInAndOpenTopic(
   queryClient?: QueryClient,
 ) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/topics/7', queryClient);
   await view.user.type(screen.getByLabelText('Email'), 'details@example.com');
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await screen.findByRole('heading', { name: 'My Topics' });
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
   return view;
 }
 
@@ -264,7 +260,9 @@ describe('topic details, update and status flow', () => {
     );
     const { user } = await signInAndOpenTopic(fetchMock, { put: putSpy }, queryClient);
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    queryClient.setQueryData(topicQueryKeys.list(42), [topic]);
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const titleInput = screen.getByLabelText('Title');
     await user.clear(titleInput);
     await user.type(titleInput, 'Modern Java');
@@ -302,7 +300,8 @@ describe('topic details, update and status flow', () => {
         ),
     });
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
     const input = screen.getByLabelText('Title');
     await user.clear(input);
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -315,7 +314,8 @@ describe('topic details, update and status flow', () => {
   it('cancels a prefilled edit without changing topic data', async () => {
     const { user } = await signInAndOpenTopic(fetchMock);
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
     expect(screen.getByLabelText('Title')).toHaveValue(topic.title);
     await user.clear(screen.getByLabelText('Title'));
     await user.type(screen.getByLabelText('Title'), 'Unsaved title');
@@ -334,7 +334,9 @@ describe('topic details, update and status flow', () => {
     );
     const { user } = await signInAndOpenTopic(fetchMock, { patch: patchSpy }, queryClient);
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Change Status' }));
+    queryClient.setQueryData(topicQueryKeys.list(42), [topic]);
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Change Status' }));
     const select = screen.getByLabelText('Status');
     expect(Array.from((select as HTMLSelectElement).options).map((option) => option.value)).toEqual(
       ['PLANNED', 'IN_PROGRESS', 'COMPLETED'],
@@ -365,7 +367,8 @@ describe('topic details, update and status flow', () => {
     );
     const { user } = await signInAndOpenTopic(fetchMock, { put: putSpy });
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(await screen.findByRole('button', { name: 'Saving…' })).toBeDisabled();
     expect(putSpy).toHaveBeenCalledTimes(1);
@@ -393,7 +396,8 @@ describe('topic details, update and status flow', () => {
       );
     const { user } = await signInAndOpenTopic(fetchMock, { patch: patchSpy });
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Change Status' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Change Status' }));
     await user.selectOptions(screen.getByLabelText('Status'), 'IN_PROGRESS');
     await user.click(screen.getByRole('button', { name: 'Update status' }));
     expect(await screen.findByRole('button', { name: 'Updating…' })).toBeDisabled();
@@ -438,7 +442,8 @@ describe('topic details, update and status flow', () => {
     );
     const { user } = await signInAndOpenTopic(fetchMock, { put: putSpy }, queryClient);
     await screen.findByRole('heading', { name: topic.title });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();
@@ -465,14 +470,17 @@ describe('topic details, update and status flow', () => {
   it('provides accessible labels and keyboard navigation for both actions', async () => {
     const { user } = await signInAndOpenTopic(fetchMock);
     await screen.findByRole('heading', { name: topic.title });
-    const editButton = screen.getByRole('button', { name: 'Edit' });
-    editButton.focus();
+    const actionsButton = screen.getByRole('button', { name: 'Topic actions' });
+    actionsButton.focus();
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus();
     await user.keyboard('{Enter}');
     expect(screen.getByLabelText('Title')).toHaveFocus();
     await user.tab();
     expect(screen.getByLabelText('Description (optional)')).toHaveFocus();
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    await user.click(screen.getByRole('button', { name: 'Change Status' }));
+    await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Change Status' }));
     expect(screen.getByLabelText('Status')).toHaveFocus();
   });
 });

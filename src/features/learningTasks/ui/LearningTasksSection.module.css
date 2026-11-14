@@ -1,10 +1,38 @@
 .section {
-  margin-top: 1rem;
+  margin-top: 0;
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
   background: var(--color-surface);
   box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
+}
+
+.routeSummary {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: var(--color-background);
+}
+
+.routeSummary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.routeSummary strong {
+  color: var(--color-text-strong);
+}
+
+.routeSummary p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
 }
 
 .heading,
@@ -125,19 +153,74 @@
 
 .list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0;
   margin: 1.25rem 0 0;
   padding: 0;
   list-style: none;
 }
 
 .taskCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr);
+  gap: 0.9rem;
   min-width: 0;
-  padding: 1.25rem;
+  padding: 0 0 1.25rem;
+  background: transparent;
+}
+
+.taskCard:not(:last-child)::before {
+  position: absolute;
+  top: 2.55rem;
+  bottom: 0;
+  left: 1.25rem;
+  width: 2px;
+  background: var(--color-border);
+  content: '';
+}
+
+.stepMarker {
+  z-index: 1;
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-weight: 900;
+}
+
+.taskCard[data-current='true'] .stepMarker {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0.5rem 1.2rem rgba(100, 71, 221, 0.22);
+}
+
+.taskBody {
+  min-width: 0;
+  padding: 1.1rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.85rem;
-  background: var(--color-background);
+  border-radius: 1rem;
+  background: var(--color-surface);
+}
+
+.taskCard[data-current='true'] .taskBody {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  background: linear-gradient(135deg, var(--color-surface), var(--color-primary-soft));
+}
+
+.continueLink {
+  display: inline-flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 1rem;
+  color: var(--color-primary-strong);
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-decoration: none;
 }
 
 .taskCard h3 {
@@ -224,6 +307,6 @@
   }
 
   .metadata {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

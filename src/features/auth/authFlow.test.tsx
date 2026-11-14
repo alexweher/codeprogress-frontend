@@ -40,11 +40,11 @@ async function submitLogin(fetchMock: Mock<typeof fetch>) {
     .mockResolvedValueOnce(jsonResponse(loginResponse))
     .mockResolvedValueOnce(jsonResponse(currentUserResponse));
 
-  const view = renderApp('/login');
+  const view = renderApp('/app/settings');
   await view.user.type(screen.getByLabelText('Email'), 'learner@example.com');
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
+  await screen.findByRole('heading', { name: 'Settings' });
 
   return view;
 }
@@ -66,7 +66,7 @@ describe('authentication flow', () => {
     vi.restoreAllMocks();
   });
 
-  it('logs in, verifies the current user, and redirects to /app', async () => {
+  it('logs in, verifies the current user, and restores a protected deep link', async () => {
     await submitLogin(fetchMock);
 
     expect(screen.getByText('learner@example.com')).toBeInTheDocument();
@@ -130,12 +130,12 @@ describe('authentication flow', () => {
     fetchMock
       .mockResolvedValueOnce(jsonResponse(loginResponse))
       .mockResolvedValueOnce(jsonResponse(currentUserResponse));
-    const { user } = renderApp('/login', queryClient);
+    const { user } = renderApp('/app/settings', queryClient);
 
     await user.type(screen.getByLabelText('Email'), 'learner@example.com');
     await user.type(screen.getByLabelText('Password'), 'not-a-real-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
+    await screen.findByRole('heading', { name: 'Settings' });
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();

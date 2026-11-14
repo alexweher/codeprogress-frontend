@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import styles from './DeleteTopicDialog.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
 
 type DeleteTopicDialogProps = {
   topicTitle: string;
@@ -20,6 +21,7 @@ export function DeleteTopicDialog({
   onConfirm,
   onRecovery,
 }: DeleteTopicDialogProps) {
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -68,14 +70,13 @@ export function DeleteTopicDialog({
         aria-describedby="delete-topic-description delete-topic-consequence"
         onKeyDown={handleKeyDown}
       >
-        <p className={styles.eyebrow}>Destructive action</p>
-        <h2 id="delete-topic-title">Delete Topic?</h2>
+        <p className={styles.eyebrow}>{t('common.destructive')}</p>
+        <h2 id="delete-topic-title">{t('topics.deleteTitle')}</h2>
         <p className={styles.warning} id="delete-topic-description">
-          You are about to delete <strong>{topicTitle}</strong>.
+          {t('common.aboutToDelete')} <strong>{topicTitle}</strong>.
         </p>
         <p className={styles.consequence} id="delete-topic-consequence">
-          This action is permanent and cannot be undone. Topics with learning tasks or study
-          sessions cannot be deleted.
+          {t('topics.deleteConsequence')}
         </p>
 
         {errorMessage ? (
@@ -87,7 +88,7 @@ export function DeleteTopicDialog({
         <div className={styles.actions}>
           {recoveryAction ? (
             <button className={styles.secondary} type="button" onClick={onRecovery}>
-              {recoveryAction === 'back' ? 'Back to Topics' : 'Check topic state'}
+              {recoveryAction === 'back' ? t('common.backToTopicsButton') : t('topics.checkState')}
             </button>
           ) : null}
           <button
@@ -97,10 +98,10 @@ export function DeleteTopicDialog({
             onClick={onCancel}
             disabled={isPending}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button className={styles.delete} type="button" onClick={onConfirm} disabled={isPending}>
-            {isPending ? 'Deleting…' : 'Delete'}
+            {isPending ? t('common.deleting') : t('common.delete')}
           </button>
         </div>
       </div>

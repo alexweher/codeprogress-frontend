@@ -1,0 +1,68 @@
+.page {
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-8);
+}
+.header {
+  max-width: 48rem;
+  margin-bottom: var(--space-6);
+}
+.header h1 {
+  margin: var(--space-2) 0;
+}
+.eyebrow {
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.card {
+  max-width: 42rem;
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.card h2 {
+  margin-top: 0;
+}
+.card fieldset {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: 0;
+  border: 0;
+}
+.card legend {
+  margin-bottom: var(--space-3);
+  font-weight: 700;
+}
+.card label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 3rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.card input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.saved {
+  margin-bottom: 0;
+  color: var(--color-success, #237a45);
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-5);
+  }
+  .card {
+    padding: var(--space-4);
+  }
+}

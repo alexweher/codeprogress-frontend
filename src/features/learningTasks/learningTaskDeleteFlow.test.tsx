@@ -87,18 +87,17 @@ async function signInAndOpenTask(
   queryClient?: QueryClient,
 ) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/tasks/11', queryClient);
   await view.user.type(screen.getByLabelText('Email'), currentUser.email);
   await view.user.type(screen.getByLabelText('Password'), 'synthetic-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await screen.findByRole('heading', { name: 'My Topics' });
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
-  await screen.findByRole('heading', { name: topic.title });
-  await view.user.click(await screen.findByRole('link', { name: task.title }));
   await screen.findByRole('heading', { name: task.title });
   return view;
+}
+
+async function openDeleteDialog(user: Awaited<ReturnType<typeof signInAndOpenTask>>['user']) {
+  await user.click(screen.getByRole('button', { name: 'Task actions' }));
+  await user.click(screen.getByRole('menuitem', { name: 'Delete LearningTask' }));
 }
 
 function deleteCalls(fetchMock: Mock<typeof fetch>) {
@@ -144,9 +143,9 @@ describe('safe LearningTask deletion', () => {
 
   it('shows the action and labelled confirmation without deleting before confirmation', async () => {
     const { user } = await signInAndOpenTask(fetchMock);
-    const trigger = screen.getByRole('button', { name: 'Delete LearningTask' });
+    const trigger = screen.getByRole('button', { name: 'Task actions' });
     expect(trigger).toBeVisible();
-    await user.click(trigger);
+    await openDeleteDialog(user);
 
     const dialog = screen.getByRole('dialog', { name: 'Delete LearningTask?' });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
@@ -157,8 +156,8 @@ describe('safe LearningTask deletion', () => {
 
   it('cancels without a request and restores focus to Delete LearningTask', async () => {
     const { user } = await signInAndOpenTask(fetchMock);
-    const trigger = screen.getByRole('button', { name: 'Delete LearningTask' });
-    await user.click(trigger);
+    const trigger = screen.getByRole('button', { name: 'Task actions' });
+    await openDeleteDialog(user);
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
@@ -187,7 +186,7 @@ describe('safe LearningTask deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByText('Learning task deleted successfully.')).toBeVisible();
@@ -216,7 +215,7 @@ describe('safe LearningTask deletion', () => {
       list: () => Promise.resolve(json(deleted ? [] : [task])),
       delete: handler,
     });
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('button', { name: 'Deleting…' })).toBeDisabled();
@@ -244,7 +243,7 @@ describe('safe LearningTask deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/study session history/i);
@@ -256,7 +255,7 @@ describe('safe LearningTask deletion', () => {
     const { user } = await signInAndOpenTask(fetchMock, {
       delete: () => Promise.resolve(json(apiError(404, 'Learning task was not found'), 404)),
     });
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -278,7 +277,7 @@ describe('safe LearningTask deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();
@@ -295,7 +294,7 @@ describe('safe LearningTask deletion', () => {
       },
       delete: () => Promise.reject(new TypeError('Failed to fetch')),
     });
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/cannot confirm whether/i);
@@ -318,7 +317,7 @@ describe('safe LearningTask deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete LearningTask' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
@@ -340,8 +339,10 @@ describe('safe LearningTask deletion', () => {
 
   it('supports focus trapping, Escape and trigger focus restoration', async () => {
     const { user } = await signInAndOpenTask(fetchMock);
-    const trigger = screen.getByRole('button', { name: 'Delete LearningTask' });
+    const trigger = screen.getByRole('button', { name: 'Task actions' });
     trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
     await user.keyboard('{Enter}');
     const cancel = screen.getByRole('button', { name: 'Cancel' });
     const confirm = screen.getByRole('button', { name: 'Delete' });
