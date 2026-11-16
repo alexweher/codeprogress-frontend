@@ -10,7 +10,7 @@ test('shows a network error and recovers with Retry', async ({ page }) => {
   const failedRequests = state.dashboardSummaryRequests;
   state.dashboardAvailable = true;
   await page.getByRole('button', { name: 'Try again' }).click();
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Make the next step count.' })).toBeVisible();
   await expect.poll(() => state.dashboardSummaryRequests).toBeGreaterThan(failedRequests);
 });
 
@@ -43,7 +43,8 @@ test('does not automatically retry an ambiguous DELETE and offers a state check'
   await page.getByRole('link', { name: 'Browser testing foundations' }).click();
   await page.getByRole('link', { name: 'Verify accessible dialogs' }).click();
   await expect(page.getByRole('heading', { name: 'Verify accessible dialogs' })).toBeVisible();
-  await page.getByRole('button', { name: 'Delete LearningTask' }).click();
+  await page.getByRole('button', { name: 'Task actions' }).click();
+  await page.getByRole('menuitem', { name: 'Delete LearningTask' }).click();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('cannot confirm whether');
   await expect.poll(() => state.taskDeleteRequests).toBe(1);

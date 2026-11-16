@@ -82,6 +82,30 @@ function createActivityResponse(minutesByIndex: Partial<Record<number, number>> 
 type DashboardHandlers = {
   summary?: () => Promise<Response>;
   activity?: () => Promise<Response>;
+  topics?: () => Promise<Response>;
+  tasks?: () => Promise<Response>;
+};
+
+const topicResponse = {
+  id: 7,
+  title: 'React architecture',
+  description: 'Build a maintainable feature slice.',
+  status: 'IN_PROGRESS',
+  createdAt: '2026-10-20T10:00:00',
+  updatedAt: '2026-10-20T10:00:00',
+};
+
+const taskResponse = {
+  id: 11,
+  topicId: 7,
+  title: 'Build the query layer',
+  description: 'Connect the typed API client.',
+  difficulty: 'MEDIUM',
+  status: 'IN_PROGRESS',
+  deadline: null,
+  priority: 'HIGH',
+  createdAt: '2026-10-20T10:00:00',
+  updatedAt: '2026-10-20T10:00:00',
 };
 
 function installApiMock(fetchMock: Mock<typeof fetch>, handlers: DashboardHandlers = {}) {
@@ -109,6 +133,14 @@ function installApiMock(fetchMock: Mock<typeof fetch>, handlers: DashboardHandle
       );
     }
 
+    if (url.pathname === '/api/topics') {
+      return handlers.topics?.() ?? Promise.resolve(jsonResponse([topicResponse]));
+    }
+
+    if (url.pathname === '/api/topics/7/tasks') {
+      return handlers.tasks?.() ?? Promise.resolve(jsonResponse([taskResponse]));
+    }
+
     throw new Error(`Unexpected request: ${url.pathname}`);
   });
 }
@@ -120,8 +152,6 @@ async function signInAndOpenDashboard(fetchMock: Mock<typeof fetch>, handlers?: 
   await view.user.type(screen.getByLabelText('Email'), 'dashboard@example.com');
   await view.user.type(screen.getByLabelText('Password'), 'dashboard-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /dashboard/i }));
 
   return view;
 }
@@ -168,17 +198,51 @@ describe('dashboard API and page', () => {
   it('renders summary metrics and all zero/non-zero activity days', async () => {
     await signInAndOpenDashboard(fetchMock);
 
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Make the next step count.' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Build the query layer' })).toBeVisible();
+    expect(screen.getByRole('link', { name: /Continue task/ })).toHaveAttribute(
+      'href',
+      '/app/tasks/11',
+    );
     expect(screen.getByText('420')).toBeVisible();
-    expect(screen.getByText('50%')).toBeVisible();
     const activity = screen.getByRole('list', {
-      name: 'Daily study activity for the last 30 days',
+      name: 'Daily study minutes for the last 7 calendar days',
     });
-    expect(within(activity).getAllByRole('listitem')).toHaveLength(30);
+    expect(within(activity).getAllByRole('listitem')).toHaveLength(7);
     expect(
       within(activity).getAllByLabelText(/0 study minutes, 0 sessions/i).length,
     ).toBeGreaterThan(0);
     expect(within(activity).getByLabelText(/90 study minutes, 1 sessions/i)).toBeVisible();
+  });
+
+  it('uses honest next-step labels for planned and fully completed task sets', async () => {
+    const plannedView = await signInAndOpenDashboard(fetchMock, {
+      tasks: () => Promise.resolve(jsonResponse([{ ...taskResponse, status: 'PLANNED' }])),
+    });
+    expect(await screen.findByRole('link', { name: /Start next task/ })).toHaveAttribute(
+      'href',
+      '/app/tasks/11',
+    );
+    plannedView.unmount();
+    authSession.clear();
+
+    await signInAndOpenDashboard(fetchMock, {
+      summary: () =>
+        Promise.resolve(
+          jsonResponse({
+            ...summaryResponse,
+            plannedTasks: 0,
+            activeTasks: 0,
+            completedTasks: 1,
+            completionPercent: 100,
+          }),
+        ),
+      tasks: () => Promise.resolve(jsonResponse([{ ...taskResponse, status: 'COMPLETED' }])),
+    });
+    expect(await screen.findByRole('link', { name: /Add the next task/ })).toHaveAttribute(
+      'href',
+      '/app/topics/7',
+    );
   });
 
   it('shows a normal empty state for a new user', async () => {
@@ -198,9 +262,14 @@ describe('dashboard API and page', () => {
           }),
         ),
       activity: () => Promise.resolve(jsonResponse(createActivityResponse())),
+      topics: () => Promise.resolve(jsonResponse([])),
     });
 
     expect(await screen.findByRole('heading', { name: /your learning activity/i })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Create your first topic' })).toHaveAttribute(
+      'href',
+      '/app/topics',
+    );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -234,7 +303,7 @@ describe('dashboard API and page', () => {
       'An unexpected server error occurred',
     );
     await user.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Make the next step count.' })).toBeVisible();
     expect(summaryAttempts).toBe(2);
   });
 
@@ -267,8 +336,6 @@ describe('dashboard API and page', () => {
     await user.type(screen.getByLabelText('Email'), 'dashboard@example.com');
     await user.type(screen.getByLabelText('Password'), 'dashboard-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
-    await user.click(screen.getByRole('link', { name: /dashboard/i }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();
     expect(authSession.getAccessToken()).toBeNull();
@@ -283,9 +350,7 @@ describe('dashboard API and page', () => {
     await user.type(screen.getByLabelText('Email'), 'dashboard@example.com');
     await user.type(screen.getByLabelText('Password'), 'dashboard-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    await screen.findByRole('heading', { name: /you’re signed in/i });
-    await user.click(screen.getByRole('link', { name: /dashboard/i }));
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Make the next step count.' });
 
     expect(queryClient.getQueryData(dashboardQueryKeys.summary(42))).toEqual(summaryResponse);
     await user.click(screen.getByRole('button', { name: 'Logout' }));
@@ -311,15 +376,15 @@ describe('dashboard API and page', () => {
     );
   });
 
-  it('provides accessible headings and a keyboard-focusable activity region', async () => {
+  it('provides accessible headings and a labelled seven-day activity list', async () => {
     const { user } = await signInAndOpenDashboard(fetchMock);
-    await screen.findByRole('heading', { name: 'Dashboard' });
+    await screen.findByRole('heading', { name: 'Make the next step count.' });
 
-    expect(screen.getByRole('heading', { name: 'Progress summary' })).toBeVisible();
-    expect(screen.getByRole('heading', { name: 'Study minutes by day' })).toBeVisible();
-    const scroller = screen.getByLabelText('Scrollable daily activity');
-    scroller.focus();
-    expect(scroller).toHaveFocus();
+    expect(screen.getByRole('heading', { name: 'Build the query layer' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Last 7 days' })).toBeVisible();
+    expect(
+      screen.getByRole('list', { name: 'Daily study minutes for the last 7 calendar days' }),
+    ).toBeVisible();
     await user.tab();
     expect(screen.getByRole('button', { name: 'Logout' })).not.toHaveFocus();
   });

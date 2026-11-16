@@ -8,6 +8,7 @@ import {
 } from '../api/topicsApi';
 import { getTopicErrorMessage } from '../lib/topicErrors';
 import styles from './TopicMutationForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
 
 type EditTopicFormProps = {
   topic: TopicResponse;
@@ -19,6 +20,7 @@ type EditTopicFormProps = {
 type FieldErrors = Partial<Record<'title' | 'description', string>>;
 
 export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopicFormProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState(topic.title);
   const [description, setDescription] = useState(topic.description ?? '');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -32,12 +34,12 @@ export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopi
 
     const nextErrors: FieldErrors = {};
     if (title.trim().length === 0) {
-      nextErrors.title = 'Enter a topic title.';
+      nextErrors.title = t('topics.titleRequired');
     } else if (title.length > TOPIC_TITLE_MAX_LENGTH) {
-      nextErrors.title = `Use ${TOPIC_TITLE_MAX_LENGTH} characters or fewer.`;
+      nextErrors.title = t('common.maxCharacters', { count: TOPIC_TITLE_MAX_LENGTH });
     }
     if (description.length > TOPIC_DESCRIPTION_MAX_LENGTH) {
-      nextErrors.description = `Use ${TOPIC_DESCRIPTION_MAX_LENGTH} characters or fewer.`;
+      nextErrors.description = t('common.maxCharacters', { count: TOPIC_DESCRIPTION_MAX_LENGTH });
     }
 
     setFieldErrors(nextErrors);
@@ -58,7 +60,7 @@ export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopi
         }
         setFieldErrors(backendErrors);
       }
-      setSubmissionError(getTopicErrorMessage(error, 'The topic could not be updated.'));
+      setSubmissionError(getTopicErrorMessage(error, t('topics.updateError'), t));
     }
   }
 
@@ -68,7 +70,7 @@ export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopi
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.field}>
-        <label htmlFor="edit-topic-title">Title</label>
+        <label htmlFor="edit-topic-title">{t('topics.titleLabel')}</label>
         <input
           id="edit-topic-title"
           name="title"
@@ -91,7 +93,9 @@ export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopi
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="edit-topic-description">Description (optional)</label>
+        <label htmlFor="edit-topic-description">
+          {t('topics.descriptionLabel')} {t('common.optional')}
+        </label>
         <textarea
           id="edit-topic-description"
           name="description"
@@ -118,10 +122,10 @@ export function EditTopicForm({ topic, isPending, onCancel, onSubmit }: EditTopi
 
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save changes'}
+          {isPending ? t('common.saving') : t('topics.saveChanges')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

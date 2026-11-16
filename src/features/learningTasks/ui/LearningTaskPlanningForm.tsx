@@ -6,12 +6,10 @@ import type {
 } from '../api/learningTasksApi';
 import { getLearningTaskErrorMessage } from '../lib/learningTaskErrors';
 import { isLocalDate } from '../lib/localDate';
-import {
-  learningTaskPriorities,
-  learningTaskPriorityLabels,
-  type LearningTaskPriority,
-} from '../model/learningTaskMetadata';
+import { learningTaskPriorities, type LearningTaskPriority } from '../model/learningTaskMetadata';
 import styles from './LearningTaskForms.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizePriority } from '../../../shared/i18n/domainLabels';
 
 export function LearningTaskPlanningForm({
   task,
@@ -24,6 +22,7 @@ export function LearningTaskPlanningForm({
   onCancel: () => void;
   onSubmit: (request: UpdateLearningTaskPlanningRequest) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [deadline, setDeadline] = useState(task.deadline ?? '');
   const [priority, setPriority] = useState<LearningTaskPriority>(task.priority);
   const [deadlineError, setDeadlineError] = useState<string | null>(null);
@@ -33,7 +32,7 @@ export function LearningTaskPlanningForm({
     event.preventDefault();
     if (isPending) return;
     if (deadline && !isLocalDate(deadline)) {
-      setDeadlineError('Enter a valid date.');
+      setDeadlineError(t('tasks.dateInvalid'));
       return;
     }
     setDeadlineError(null);
@@ -48,14 +47,16 @@ export function LearningTaskPlanningForm({
           if (item.field === 'priority') setPriorityError(item.message);
         }
       }
-      setError(getLearningTaskErrorMessage(cause, 'The task planning could not be updated.'));
+      setError(getLearningTaskErrorMessage(cause, t('tasks.planningError'), t));
     }
   }
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.grid}>
         <label className={styles.field}>
-          <span>Deadline (optional)</span>
+          <span>
+            {t('tasks.deadline')} {t('common.optional')}
+          </span>
           <input
             autoFocus
             type="date"
@@ -67,7 +68,7 @@ export function LearningTaskPlanningForm({
           {deadlineError ? <small role="alert">{deadlineError}</small> : null}
         </label>
         <label className={styles.field}>
-          <span>Priority</span>
+          <span>{t('tasks.priority')}</span>
           <select
             required
             value={priority}
@@ -77,16 +78,14 @@ export function LearningTaskPlanningForm({
           >
             {learningTaskPriorities.map((value) => (
               <option key={value} value={value}>
-                {learningTaskPriorityLabels[value]}
+                {localizePriority(t, value)}
               </option>
             ))}
           </select>
           {priorityError ? <small role="alert">{priorityError}</small> : null}
         </label>
       </div>
-      <p className={styles.hint}>
-        Clear the date to remove the deadline. Priority is required by API v1.0.0.
-      </p>
+      <p className={styles.hint}>{t('tasks.planningHint')}</p>
       {error ? (
         <p className={styles.submissionError} role="alert">
           {error}
@@ -94,10 +93,10 @@ export function LearningTaskPlanningForm({
       ) : null}
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save planning'}
+          {isPending ? t('common.saving') : t('tasks.savePlanning')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

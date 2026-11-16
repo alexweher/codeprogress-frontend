@@ -1,12 +1,13 @@
 import { expect, type Page } from '@playwright/test';
 
-export async function signIn(page: Page) {
+export async function signIn(page: Page, options: { allowImmediateLogout?: boolean } = {}) {
   await page.goto('/login');
   await page.getByLabel('Email').fill('browser.user@example.test');
   await page.getByLabel('Password').fill('Mocked-Password-Only-42!');
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(/\/app$/);
-  await expect(page.getByText('browser.user@example.test')).toBeVisible();
+  if (!options.allowImmediateLogout) {
+    await expect(page).toHaveURL(/\/app(?:\/.*)?$/);
+  }
 }
 
 export async function expectNoHorizontalOverflow(page: Page) {

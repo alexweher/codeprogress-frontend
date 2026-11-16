@@ -1,0 +1,1765 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CodeProgress — Phase B, interactive UX concept</title>
+    <style>
+      :root {
+        --bg: #f5f7fc;
+        --surface: #fff;
+        --ink: #1d2641;
+        --muted: #687793;
+        --line: #e5eaf3;
+        --primary: #6447dd;
+        --primaryDeep: #4e33bf;
+        --primarySoft: #eeeaff;
+        --green: #1f8956;
+        --greenSoft: #e4f7eb;
+        --yellow: #ab6b08;
+        --yellowSoft: #fff2d9;
+        --radius: 24px;
+        --shadow: 0 16px 55px rgba(36, 45, 85, 0.065);
+        font-family:
+          Inter,
+          'Segoe UI',
+          system-ui,
+          -apple-system,
+          sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        font-synthesis: none;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(ellipse at 90% 10%, rgba(226, 250, 240, 0.68), transparent 38%),
+          radial-gradient(ellipse at 16% 85%, rgba(232, 227, 255, 0.6), transparent 44%), var(--bg);
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 0;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible,
+      select:focus-visible {
+        outline: 3px solid #ffa82f;
+        outline-offset: 3px;
+      }
+      svg {
+        width: 19px;
+        height: 19px;
+        vertical-align: middle;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      button svg,
+      .icon svg {
+        width: 20px;
+        height: 20px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        background: rgba(255, 255, 255, 0.92);
+        border-right: 1px solid var(--line);
+        padding: 28px 17px 22px;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 3px 9px 40px;
+        font-size: 19px;
+        font-weight: 860;
+        letter-spacing: -0.7px;
+      }
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 15px;
+        background: #6447dd;
+        display: grid;
+        place-items: center;
+        color: white;
+        font-size: 18px;
+        font-weight: 850;
+        box-shadow: 0 12px 18px #6447dd36;
+      }
+      .nav-caption {
+        font-size: 10px;
+        letter-spacing: 1.6px;
+        font-weight: 900;
+        color: #8793af;
+        margin: 10px 13px 13px;
+      }
+      .navitem {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        text-align: left;
+        background: transparent;
+        border-radius: 15px;
+        color: #52617f;
+        padding: 13px 13px;
+        font-weight: 750;
+        font-size: 14px;
+        margin: 2px 0;
+        transition: 0.18s;
+      }
+      .navitem svg {
+        width: 19px;
+        height: 19px;
+        stroke-width: 2;
+      }
+      .navitem.active {
+        background: #eeeaff;
+        color: #543bd4;
+      }
+      .navitem:hover {
+        background: #f3f1ff;
+        color: #543bd4;
+      }
+      .navitem.active .nav-icon {
+        background: var(--primary);
+        color: white;
+      }
+      .nav-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: #f1f3fa;
+        color: #7a86a5;
+      }
+      .side-bottom {
+        margin-top: auto;
+      }
+      .tip {
+        background: #eeeaff;
+        padding: 18px;
+        border-radius: 19px;
+        font-weight: 750;
+        line-height: 1.5;
+        font-size: 12px;
+        color: #6249c0;
+      }
+      .tip span {
+        font-size: 19px;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .mini-copy {
+        font-size: 10px;
+        color: #a3acc0;
+        text-align: center;
+        margin-top: 20px;
+      }
+      .main {
+        min-width: 0;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 8;
+        height: 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 0 6%;
+        background: rgba(247, 249, 253, 0.93);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid #e8ecf5;
+      }
+      .crumbs {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 13px;
+        color: #7b88a1;
+        min-width: 0;
+      }
+      .crumbs button {
+        background: none;
+        padding: 8px 0;
+        color: #7b88a1;
+        white-space: nowrap;
+      }
+      .crumbs svg {
+        flex: 0 0 16px;
+      }
+      .crumbs strong {
+        color: #283451;
+        font-weight: 750;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+      .locale {
+        display: flex;
+        background: white;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+      }
+      .locale button {
+        background: none;
+        color: #8290a8;
+        padding: 7px 10px;
+        border-radius: 9px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .locale button.on {
+        background: var(--primarySoft);
+        color: var(--primary);
+      }
+      .avatar {
+        height: 37px;
+        width: 37px;
+        border-radius: 13px;
+        background: var(--primary);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+      }
+      .workspace {
+        max-width: 1360px;
+        margin: auto;
+        padding: 40px 5.6% 100px;
+      }
+      .demo-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        color: #916300;
+        background: #fff5df;
+        border: 1px solid #ffe1a5;
+        padding: 9px 13px;
+        border-radius: 12px;
+        max-width: max-content;
+        margin-bottom: 28px;
+      }
+      .eyebrow {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.7px;
+        font-weight: 900;
+        color: var(--green);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        font-size: clamp(33px, 3.5vw, 52px);
+        line-height: 1.12;
+        letter-spacing: -2px;
+        margin: 12px 0 12px;
+        font-weight: 870;
+      }
+      h2 {
+        font-size: 25px;
+        letter-spacing: -0.8px;
+        margin: 0 0 7px;
+        font-weight: 850;
+      }
+      h3 {
+        font-size: 18px;
+        letter-spacing: -0.4px;
+        margin: 0 0 7px;
+      }
+      .muted {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 24px;
+        margin-bottom: 25px;
+      }
+      .section-head .muted {
+        max-width: 610px;
+      }
+      .btn {
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 13px 17px;
+        font-size: 13px;
+        font-weight: 830;
+        line-height: 1.3;
+        transition:
+          background 0.17s,
+          transform 0.17s,
+          box-shadow 0.17s;
+        min-height: 45px;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn svg {
+        height: 18px;
+        width: 18px;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 9px 19px #6447dd29;
+      }
+      .btn-primary:hover {
+        background: var(--primaryDeep);
+      }
+      .btn-dark {
+        background: var(--ink);
+        color: white;
+      }
+      .btn-white {
+        background: white;
+        border: 1px solid var(--line);
+        color: var(--ink);
+      }
+      .btn-soft {
+        background: var(--primarySoft);
+        color: var(--primary);
+      }
+      .btn-green {
+        background: #26a364;
+        color: white;
+      }
+      .btn-quiet {
+        background: transparent;
+        color: #687793;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+      .kpi-strip {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 20px 0 26px;
+      }
+      .kpi {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        padding: 10px 14px;
+        color: #63708a;
+        font-size: 12px;
+        font-weight: 680;
+      }
+      .kpi b {
+        color: var(--ink);
+        font-size: 15px;
+        margin-right: 5px;
+      }
+      .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.85fr);
+        gap: 22px;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-width: 0;
+      }
+      .topic-card {
+        padding: 25px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .topic-card:hover {
+        transform: translateY(-3px);
+        border-color: #d7cfff;
+        box-shadow: 0 25px 50px #32286d12;
+      }
+      .topic-card:after {
+        content: '';
+        position: absolute;
+        right: -30px;
+        top: -45px;
+        width: 170px;
+        height: 170px;
+        background: radial-gradient(circle, #eee9ff 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .card-title-row {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .topic-icon {
+        width: 57px;
+        height: 57px;
+        flex-shrink: 0;
+        border-radius: 18px;
+        background: linear-gradient(145deg, #825ff1, #5238c4);
+        color: white;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        font-size: 19px;
+        box-shadow: 0 11px 22px #6249d235;
+      }
+      .topic-card h3 {
+        font-size: 20px;
+        margin: 0;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .pill {
+        max-width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 100px;
+        padding: 7px 11px;
+        background: #f0f3f9;
+        color: #5e6b87;
+        font-size: 11px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+      .pill.green {
+        background: var(--greenSoft);
+        color: #176b41;
+      }
+      .pill.yellow {
+        background: var(--yellowSoft);
+        color: var(--yellow);
+      }
+      .pill.violet {
+        background: var(--primarySoft);
+        color: var(--primary);
+      }
+      .topic-card .muted {
+        margin: 20px 0 21px;
+      }
+      .progress-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 9px;
+        font-size: 12px;
+        color: #71809b;
+        font-weight: 680;
+      }
+      .progress-label b {
+        font-size: 12px;
+        color: #2b3553;
+      }
+      .track {
+        height: 9px;
+        border-radius: 100px;
+        background: #ecedf5;
+        overflow: hidden;
+      }
+      .track span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #6447dd, #9d84fa);
+      }
+      .topic-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 23px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        gap: 10px;
+      }
+      .topic-meta span {
+        color: #62718e;
+        font-weight: 680;
+        font-size: 12px;
+      }
+      .link {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--primary);
+        font-weight: 850;
+        font-size: 13px;
+      }
+      .link:hover {
+        text-decoration: underline;
+      }
+      .create-card {
+        border: 2px dashed #d7dbea;
+        border-radius: var(--radius);
+        padding: 25px;
+        text-align: left;
+        background: #ffffff9b;
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
+        align-items: start;
+      }
+      .create-card .plus {
+        font-size: 26px;
+        color: #674bdd;
+        background: #eeeaff;
+        border-radius: 13px;
+        height: 45px;
+        width: 45px;
+        display: grid;
+        place-items: center;
+      }
+      .create-card strong {
+        font-size: 16px;
+      }
+      .insight {
+        padding: 26px;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(148deg, #2b315b, #6546c8);
+        border-radius: var(--radius);
+        color: white;
+        min-height: 228px;
+      }
+      .insight .eyebrow {
+        color: #bdb0ff;
+      }
+      .insight h3 {
+        font-size: 24px;
+        max-width: 260px;
+        margin: 17px 0 12px;
+      }
+      .insight p {
+        font-size: 13px;
+        opacity: 0.8;
+        line-height: 1.6;
+        max-width: 270px;
+      }
+      .insight:after {
+        content: '</>';
+        font-size: 55px;
+        display: grid;
+        place-items: center;
+        width: 132px;
+        height: 132px;
+        border: 21px solid #ffffff12;
+        border-radius: 50%;
+        position: absolute;
+        bottom: -30px;
+        right: -26px;
+        color: #ffffff69;
+      }
+      .note-card {
+        padding: 24px;
+      }
+      .note-card h3 {
+        font-size: 17px;
+      }
+      .note-card p {
+        font-size: 13px;
+        margin: 10px 0 0;
+      }
+      .micro-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 13px 0;
+        font-size: 12px;
+        color: #5c6b86;
+      }
+      .micro-row .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #7656e8;
+      }
+      .hero-topic {
+        display: grid;
+        grid-template-columns: 1fr 155px;
+        align-items: center;
+        padding: 31px 32px;
+        gap: 20px;
+        background: linear-gradient(115deg, #f5f2ff, #fff 64%, #e9f9f0);
+        border: 1px solid #e3e2f5;
+        border-radius: 27px;
+        margin-bottom: 22px;
+        overflow: hidden;
+      }
+      .hero-topic h1 {
+        font-size: 38px;
+        margin: 10px 0 9px;
+      }
+      .hero-topic .muted {
+        max-width: 630px;
+        font-size: 14px;
+        margin: 0;
+      }
+      .hero-visual {
+        height: 132px;
+        width: 132px;
+        display: grid;
+        place-items: center;
+        border-radius: 38px;
+        background: linear-gradient(140deg, #8365e8, #5239c4);
+        color: white;
+        font-size: 44px;
+        font-weight: 900;
+        transform: rotate(-8deg);
+        box-shadow: 19px 18px 0 #dcd4ff;
+      }
+      .topic-status-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+        gap: 22px;
+      }
+      .panel {
+        padding: 25px;
+      }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 21px;
+      }
+      .panel-head h2 {
+        margin-bottom: 8px;
+      }
+      .path {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: 45px minmax(0, 1fr) auto;
+        gap: 15px;
+        padding: 15px 0;
+        position: relative;
+        align-items: center;
+      }
+      .step:not(:last-child):after {
+        content: '';
+        position: absolute;
+        left: 21px;
+        top: 62px;
+        bottom: -14px;
+        border-left: 2px dashed #d7ddeb;
+      }
+      .step-num {
+        height: 44px;
+        width: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        background: #eeebff;
+        color: #6045d2;
+        font-weight: 900;
+        position: relative;
+        z-index: 1;
+      }
+      .step-num.done {
+        background: var(--greenSoft);
+        color: #16804d;
+      }
+      .step-name {
+        font-weight: 830;
+        font-size: 14px;
+        margin-bottom: 5px;
+      }
+      .step small {
+        font-size: 12px;
+        color: #8895ad;
+      }
+      .step-btn {
+        border-radius: 12px;
+        padding: 10px 13px;
+        color: #6344d9;
+        background: #f1edff;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .step-add {
+        background: linear-gradient(95deg, #faf9ff, #f3f7ff);
+        border: 1px dashed #cbc6ef;
+        border-radius: 18px;
+        padding: 12px 14px;
+        grid-template-columns: 45px 1fr auto;
+      }
+      .step-add .step-num {
+        background: white;
+        border: 1px solid #ddd6f6;
+      }
+      .summary-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 21px;
+      }
+      .summary-metric {
+        padding: 17px 13px;
+        border-radius: 17px;
+        background: #f7f8fc;
+      }
+      .summary-metric strong {
+        display: block;
+        font-size: 22px;
+        letter-spacing: -0.5px;
+      }
+      .summary-metric small {
+        font-size: 11px;
+        color: #72819d;
+        display: block;
+        margin-top: 5px;
+      }
+      .topic-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+      .rule {
+        height: 1px;
+        background: var(--line);
+        margin: 20px 0;
+      }
+      .mini-sessions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid var(--line);
+        padding: 14px;
+        border-radius: 16px;
+      }
+      .mini-sessions .datebox {
+        min-width: 50px;
+        height: 52px;
+        border-radius: 13px;
+        background: #ede9ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #5639c5;
+      }
+      .datebox strong {
+        font-size: 19px;
+        line-height: 1;
+      }
+      .datebox small {
+        font-size: 10px;
+        font-weight: 750;
+      }
+      .title-meta {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin: 15px 0 22px;
+      }
+      .back {
+        display: inline-flex;
+        gap: 7px;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 750;
+        color: #6c7593;
+        background: none;
+        margin-bottom: 18px;
+        padding: 0;
+      }
+      .back:hover {
+        color: var(--primary);
+      }
+      .task-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(290px, 0.85fr);
+        gap: 22px;
+      }
+      .task-head {
+        background: linear-gradient(117deg, #f4f1ff, #fff 75%);
+        border: 1px solid #dedaf8;
+        border-radius: 23px;
+        padding: 28px;
+        margin-bottom: 19px;
+      }
+      .task-head h1 {
+        font-size: 38px;
+        letter-spacing: -1.3px;
+      }
+      .task-head p {
+        font-size: 14px;
+        max-width: 750px;
+        line-height: 1.75;
+      }
+      .objective {
+        padding: 25px;
+      }
+      .objective p {
+        font-size: 14px;
+        line-height: 1.75;
+        color: #4c5c77;
+        margin: 12px 0;
+      }
+      .tag-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 19px 0;
+      }
+      .field {
+        background: #f8f9fd;
+        border-radius: 13px;
+        padding: 15px;
+      }
+      .field small {
+        display: block;
+        font-size: 11px;
+        color: #8390a8;
+        margin-bottom: 7px;
+      }
+      .field strong {
+        font-size: 13px;
+      }
+      .action-panel {
+        padding: 24px;
+        background: linear-gradient(155deg, #fff, #f8f7ff);
+      }
+      .action-panel .btn {
+        width: 100%;
+        margin-top: 10px;
+      }
+      .reminder {
+        background: #f2edff;
+        border-radius: 16px;
+        padding: 15px;
+        color: #5b46a9;
+        font-size: 12px;
+        line-height: 1.65;
+        margin-top: 20px;
+      }
+      .session-card {
+        padding: 22px;
+        margin-bottom: 13px;
+      }
+      .session-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 13px;
+      }
+      .session-amount {
+        font-weight: 900;
+        color: #674bdd;
+        font-size: 20px;
+      }
+      .session-card p {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #5b6a87;
+        margin-bottom: 13px;
+      }
+      .session-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .empty {
+        background: #f8f9fd;
+        padding: 34px;
+        border-radius: 19px;
+        text-align: center;
+        color: #71809b;
+      }
+      .empty .big {
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+      .mobile-nav {
+        display: none;
+      }
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        background: #29314c;
+        color: white;
+        padding: 16px 20px;
+        border-radius: 14px;
+        box-shadow: 0 20px 40px #11162d26;
+        z-index: 40;
+        font-size: 13px;
+        max-width: 320px;
+      }
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: #1b233b86;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        padding: 18px;
+      }
+      .modal {
+        background: white;
+        border-radius: 25px;
+        width: min(100%, 530px);
+        padding: 30px;
+        box-shadow: 0 30px 90px #16193244;
+        max-height: 90vh;
+        overflow: auto;
+      }
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 20px;
+        margin-bottom: 21px;
+      }
+      .modal-head h2 {
+        font-size: 24px;
+      }
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #f1f3f8;
+        color: #66738d;
+        font-size: 22px;
+      }
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin: 15px 0;
+      }
+      .form-field label {
+        font-size: 12px;
+        font-weight: 800;
+        color: #3d4963;
+      }
+      .form-field input,
+      .form-field select,
+      .form-field textarea {
+        border: 1px solid #dce2ed;
+        background: #fbfcff;
+        border-radius: 13px;
+        padding: 13px;
+        color: var(--ink);
+        outline: none;
+        width: 100%;
+        font-size: 14px;
+      }
+      .form-field textarea {
+        min-height: 104px;
+        resize: vertical;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+        margin-top: 23px;
+      }
+      .footnote {
+        font-size: 11px;
+        color: #8b97ac;
+        margin-top: 12px;
+        line-height: 1.6;
+      }
+      @media (max-width: 1120px) {
+        .sidebar {
+          width: 205px;
+        }
+        .layout {
+          grid-template-columns: 205px minmax(0, 1fr);
+        }
+        .content-grid,
+        .split,
+        .task-shell {
+          grid-template-columns: 1fr;
+        }
+        .workspace {
+          padding: 32px 5% 90px;
+        }
+        .insight {
+          min-height: 175px;
+        }
+        .topbar {
+          padding: 0 5%;
+        }
+      }
+      @media (max-width: 760px) {
+        .btn {
+          white-space: normal;
+          text-align: center;
+          min-width: 0;
+        }
+        .task-shell,
+        .split,
+        .content-grid {
+          min-width: 0;
+        }
+        .layout {
+          display: block;
+        }
+        .sidebar {
+          display: none;
+        }
+        .topbar {
+          height: 63px;
+          padding: 0 16px;
+        }
+        .top-actions {
+          gap: 7px;
+        }
+        .avatar {
+          width: 31px;
+          height: 31px;
+          border-radius: 10px;
+        }
+        .crumbs {
+          font-size: 12px;
+          max-width: 60vw;
+        }
+        .workspace {
+          padding: 21px 16px 110px;
+        }
+        .demo-label {
+          margin-bottom: 20px;
+          font-size: 10px;
+        }
+        .section-head {
+          display: block;
+        }
+        .section-head .btn {
+          margin-top: 13px;
+          width: 100%;
+        }
+        h1 {
+          font-size: 35px;
+          letter-spacing: -1.4px;
+        }
+        h2 {
+          font-size: 23px;
+        }
+        .content-grid,
+        .split,
+        .task-shell {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .topic-card,
+        .panel,
+        .note-card {
+          padding: 20px;
+        }
+        .hero-topic {
+          grid-template-columns: 1fr;
+          padding: 23px;
+        }
+        .hero-topic h1 {
+          font-size: 32px;
+        }
+        .hero-visual {
+          display: none;
+        }
+        .topic-meta {
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .summary-row {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 7px;
+        }
+        .summary-metric {
+          padding: 12px 8px;
+        }
+        .summary-metric strong {
+          font-size: 20px;
+        }
+        .summary-metric small {
+          font-size: 10px;
+        }
+        .panel-head {
+          display: block;
+        }
+        .panel-head .btn {
+          width: 100%;
+          margin-top: 14px;
+        }
+        .step {
+          grid-template-columns: 41px minmax(0, 1fr);
+          gap: 12px;
+        }
+        .step:not(:last-child):after {
+          left: 19px;
+        }
+        .step-btn {
+          grid-column: 2;
+          width: max-content;
+        }
+        .step-add {
+          grid-template-columns: 41px 1fr;
+        }
+        .task-head {
+          padding: 23px;
+        }
+        .task-head h1 {
+          font-size: 32px;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .mobile-nav {
+          display: grid;
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 20;
+          grid-template-columns: repeat(3, 1fr);
+          background: #ffffffed;
+          backdrop-filter: blur(12px);
+          border-top: 1px solid #e1e6f0;
+          padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
+        }
+        .mobile-nav button {
+          border-radius: 13px;
+          background: transparent;
+          color: #7c87a2;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          font-size: 10px;
+          font-weight: 760;
+          min-height: 51px;
+        }
+        .mobile-nav svg {
+          width: 19px;
+          height: 19px;
+        }
+        .mobile-nav button.active {
+          color: #6245d9;
+          background: #f1edff;
+        }
+        .toast {
+          left: 12px;
+          right: 12px;
+          bottom: 94px;
+          max-width: none;
+        }
+        .modal {
+          padding: 22px;
+        }
+        .modal-footer .btn {
+          flex: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *:before,
+        *:after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const ICONS = {
+        home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+        book: '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8"/>',
+        settings:
+          '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.3.8a7 7 0 0 0-1.7-1L14.5 3h-4l-.4 2.8a7 7 0 0 0-1.7 1L6 6l-2 3.5L6 11a7 7 0 0 0 0 2l-2 1.5L6 18l2.4-.8a7 7 0 0 0 1.7 1l.4 2.8h4l.4-2.8a7 7 0 0 0 1.7-1l2.4.8 2-3.5-2-1.5a7 7 0 0 0 0-1z"/>',
+        chevron: '<path d="m9 18 6-6-6-6"/>',
+        back: '<path d="m15 18-6-6 6-6"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>',
+        arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+        check: '<path d="m4 12 5 5L20 6"/>',
+        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        pen: '<path d="m4 20 4-.9L20 7a2 2 0 0 0-3-3L5 16z"/>',
+        flag: '<path d="M5 21V4m0 1c5-4 9 4 14 0v10c-5 4-9-4-14 0"/>',
+        list: '<path d="M9 6h12M9 12h12M9 18h12M4 6h.1M4 12h.1M4 18h.1"/>',
+        spark: '<path d="m12 2 2.3 7.7L22 12l-7.7 2.3L12 22l-2.3-7.7L2 12l7.7-2.3z"/>',
+        calendar:
+          '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>',
+      };
+      const ico = (n) =>
+        `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ICONS.book}</svg>`;
+      const text = {
+        ru: {
+          demo: 'ИНТЕРАКТИВНЫЙ МАКЕТ · ДЕМО-ДАННЫЕ · БЕЗ ПОДКЛЮЧЕНИЯ К BACKEND',
+          space: 'РАБОЧЕЕ ПРОСТРАНСТВО',
+          progress: 'Мой прогресс',
+          topics: 'Мои темы',
+          settings: 'Настройки',
+          sideTip: 'Каждая небольшая цель — реальный шаг вперёд.',
+          bread: 'Учебное пространство',
+          topicsEye: 'ТВОИ НАПРАВЛЕНИЯ',
+          topicsTitle: 'Чему учимся сегодня?',
+          topicsSub:
+            'Создавай направления обучения, разбивай их на конкретные задачи и наблюдай настоящий прогресс.',
+          newTopic: 'Новая тема',
+          myTopics: 'Учебные направления',
+          oneTopic: '1 направление',
+          doneTasks: 'Выполнено задач',
+          studyTime: 'Минут практики',
+          loggedSessions: 'Занятий записано',
+          planned: 'Запланировано',
+          inProgress: 'В процессе',
+          completed: 'Завершено',
+          taskProgress: 'Прогресс задач',
+          of: 'из',
+          tasks: 'задач',
+          topicOpen: 'Открыть направление',
+          topicDesc: 'List, Set, Map, ArrayList, HashMap и HashSet',
+          addTrack: 'Добавить направление',
+          addTrackSub: 'Например, Spring Security или алгоритмы. Выбираешь, чему учиться дальше.',
+          helpTitle: 'Не просто список задач',
+          helpSub:
+            'Одна тема — это направление. Внутри неё задачи, занятия и история продвижения. Ты сам управляешь своим темпом.',
+          help2: 'Создай тему → выбери задачу → запиши занятие → увидь результат.',
+          topicEye: 'УЧЕБНОЕ НАПРАВЛЕНИЕ',
+          topicNote:
+            'Твоя личная область обучения. Учебные задачи показывают, что уже сделано, и помогают выбрать следующий шаг.',
+          topicStatus: 'Статус темы',
+          topicNotEqual: 'Статус темы задаётся отдельно от выполнения задач.',
+          topicPathEyebrow: 'ТВОЙ УЧЕБНЫЙ ПУТЬ',
+          topicTaskPath: 'Твой учебный маршрут',
+          topicTaskSub: 'Не обязательный курс: ты сам формируешь список задач и порядок обучения.',
+          addNext: 'Добавить следующую задачу',
+          noNext: 'Пока все задачи завершены. Выбери следующую учебную цель.',
+          taskAction: 'Открыть задачу',
+          done: 'Завершена',
+          topicStats: 'Прогресс по теме',
+          allTasks: 'Всего задач',
+          sessionMinutes: 'Время занятий',
+          lastActivity: 'Последнее занятие',
+          topicControl: 'Управление темой',
+          topicControlSub: 'Статус темы — твой выбор, независимо от задач.',
+          changeStatus: 'Изменить статус',
+          editTopic: 'Редактировать тему',
+          sessions: 'История занятий',
+          sessionsHint: 'Здесь сохраняется практика, связанная с этой темой.',
+          viewSessions: 'Посмотреть записи',
+          recordSession: 'Записать занятие',
+          taskEye: 'УЧЕБНАЯ ЗАДАЧА',
+          taskName: 'Изучить ArrayList',
+          taskDesc:
+            'Разобраться с методами add(), get(), remove(), size(), contains() и применить их на практике.',
+          taskDoneText:
+            'Эта задача завершена. Можно добавить новую цель или записать ещё одно занятие.',
+          taskGoal: 'Что хотел изучить',
+          taskGoalBody:
+            'Разобраться с базовыми операциями ArrayList и закрепить их на небольших примерах кода.',
+          taskProperties: 'Параметры задачи',
+          difficulty: 'Сложность',
+          priority: 'Приоритет',
+          deadline: 'Срок',
+          none: 'Не указан',
+          easy: 'Лёгкая',
+          high: 'Высокий',
+          changeTask: 'Редактировать задачу',
+          taskStatus: 'Изменить статус',
+          taskJournal: 'Практика по этой теме',
+          taskJournalDesc:
+            'Занятия хранятся внутри темы, а не отдельной задачи. В записи можно отметить выполненные задачи.',
+          taskSideTitle: 'Что дальше?',
+          taskSideText:
+            'Продолжай учиться в своём темпе. Выполненная задача не означает, что вся тема освоена.',
+          taskBack: 'К направлению',
+          sessionsEye: 'ЖУРНАЛ ПРАКТИКИ',
+          sessionsTitle: 'История занятий',
+          sessionsSub:
+            'Сохраняй время, заметки и завершённые задачи. Так будет видно, что реально получилось.',
+          sessionsNote: 'Изучал ArrayList: add(), get(), remove(), size().',
+          sessionsTasks: 'Завершена задача',
+          details: 'Детали занятия',
+          min: 'мин',
+          add: 'Добавить',
+          cancel: 'Отмена',
+          save: 'Сохранить',
+          titleLabel: 'Название',
+          descLabel: 'Описание',
+          taskTitleLabel: 'Что изучить?',
+          noteLabel: 'Заметка',
+          durationLabel: 'Длительность в минутах',
+          dateLabel: 'Дата занятия',
+          topicModal: 'Новое направление',
+          taskModal: 'Новая учебная задача',
+          sessionModal: 'Записать занятие',
+          fakeToast: 'Изменено только в демонстрационном макете, не в твоём приложении.',
+          fieldRequired: 'Заполни название.',
+          sessionCompleteHint:
+            'В реальном приложении при записи занятия можно выбрать задачи, которые будут завершены. Это действие должно оставаться явным.',
+          settingsInfo:
+            'В CodeProgress можно переключать русский и английский интерфейс. В макете это работает без перезагрузки.',
+          settingsTitle: 'Язык интерфейса',
+          formStatus: 'Статус',
+          optionOriginal: 'Запланировано',
+          goTopics: 'Перейти к темам',
+          start: 'Продолжить',
+          sessionDetail: 'Занятие',
+          statusChanged: 'Статус изменён (только в макете).',
+          topicState: 'Статус темы: запланирована',
+          taskState: 'Статус задачи: завершена',
+          hint: 'Важное отличие: 1/1 выполненная задача ≠ полностью изученная тема.',
+          emptyTasks: 'В этой теме нет учебных задач. Добавь первую цель.',
+          emptySessions: 'Занятий пока нет. После практики запиши первое занятие.',
+          editComing:
+            'В реальном приложении откроется существующая форма редактирования; здесь показан дизайн действия.',
+        },
+        en: {
+          demo: 'INTERACTIVE CONCEPT · DEMO DATA · NO BACKEND CONNECTION',
+          space: 'WORKSPACE',
+          progress: 'My progress',
+          topics: 'My topics',
+          settings: 'Settings',
+          sideTip: 'Every small goal is a real step forward.',
+          bread: 'Learning space',
+          topicsEye: 'YOUR LEARNING AREAS',
+          topicsTitle: 'What will you learn today?',
+          topicsSub:
+            'Create learning areas, turn them into specific tasks and see your actual progress.',
+          newTopic: 'New topic',
+          myTopics: 'Learning areas',
+          oneTopic: '1 learning area',
+          doneTasks: 'Tasks completed',
+          studyTime: 'Minutes practiced',
+          loggedSessions: 'Sessions logged',
+          planned: 'Planned',
+          inProgress: 'In progress',
+          completed: 'Completed',
+          taskProgress: 'Task progress',
+          of: 'of',
+          tasks: 'tasks',
+          topicOpen: 'Open learning area',
+          topicDesc: 'List, Set, Map, ArrayList, HashMap and HashSet',
+          addTrack: 'Add learning area',
+          addTrackSub: 'For example Spring Security or algorithms. You choose what comes next.',
+          helpTitle: 'More than a to-do list',
+          helpSub:
+            'A topic is a learning area. Tasks, practice sessions and progress live inside it, at your pace.',
+          help2: 'Create a topic → choose a task → log practice → see results.',
+          topicEye: 'LEARNING AREA',
+          topicNote:
+            'Your personal learning area. Tasks show what you have already done and help you pick the next step.',
+          topicStatus: 'Topic status',
+          topicNotEqual: 'Topic status is independent from task completion.',
+          topicPathEyebrow: 'YOUR LEARNING PATH',
+          topicTaskPath: 'Your learning path',
+          topicTaskSub: 'Not a prescribed course: you choose the tasks and their order.',
+          addNext: 'Add another task',
+          noNext: 'All tasks are completed for now. Pick your next learning goal.',
+          taskAction: 'Open task',
+          done: 'Completed',
+          topicStats: 'Topic progress',
+          allTasks: 'Total tasks',
+          sessionMinutes: 'Practice time',
+          lastActivity: 'Latest session',
+          topicControl: 'Topic controls',
+          topicControlSub: 'You control topic status independently of tasks.',
+          changeStatus: 'Change status',
+          editTopic: 'Edit topic',
+          sessions: 'Session history',
+          sessionsHint: 'Your practice connected to this learning area.',
+          viewSessions: 'View sessions',
+          recordSession: 'Log study session',
+          taskEye: 'LEARNING TASK',
+          taskName: 'Learn ArrayList',
+          taskDesc:
+            'Practice add(), get(), remove(), size(), and contains() with real Java examples.',
+          taskDoneText:
+            'This task is done. You can set a new goal or log another practice session.',
+          taskGoal: 'What I wanted to learn',
+          taskGoalBody:
+            'Understand core ArrayList operations and reinforce them with small Java code examples.',
+          taskProperties: 'Task details',
+          difficulty: 'Difficulty',
+          priority: 'Priority',
+          deadline: 'Deadline',
+          none: 'None',
+          easy: 'Easy',
+          high: 'High',
+          changeTask: 'Edit task',
+          taskStatus: 'Change status',
+          taskJournal: 'Practice in this topic',
+          taskJournalDesc:
+            'Sessions belong to the topic rather than a single task. You can mark tasks completed when logging a session.',
+          taskSideTitle: 'What next?',
+          taskSideText:
+            'Learn at your own pace. Completing a task does not mean you have mastered the whole topic.',
+          taskBack: 'Back to learning area',
+          sessionsEye: 'PRACTICE JOURNAL',
+          sessionsTitle: 'Study sessions',
+          sessionsSub: 'Capture time, notes and completed tasks to see what you actually did.',
+          sessionsNote: 'Studied ArrayList: add(), get(), remove(), size().',
+          sessionsTasks: 'Completed task',
+          details: 'Session details',
+          min: 'min',
+          add: 'Add',
+          cancel: 'Cancel',
+          save: 'Save',
+          titleLabel: 'Title',
+          descLabel: 'Description',
+          taskTitleLabel: 'What do you want to learn?',
+          noteLabel: 'Note',
+          durationLabel: 'Duration in minutes',
+          dateLabel: 'Session date',
+          topicModal: 'New learning area',
+          taskModal: 'New learning task',
+          sessionModal: 'Log study session',
+          fakeToast: 'Updated in demo only, not in your CodeProgress app.',
+          fieldRequired: 'Please add a title.',
+          sessionCompleteHint:
+            'In the real app, session creation lets you select tasks that will be completed. This must remain an explicit action.',
+          settingsInfo:
+            'Switch CodeProgress between Russian and English. This demo works without reloading.',
+          settingsTitle: 'Interface language',
+          formStatus: 'Status',
+          optionOriginal: 'Planned',
+          goTopics: 'Go to topics',
+          start: 'Continue',
+          sessionDetail: 'Session',
+          statusChanged: 'Status updated (demo only).',
+          topicState: 'Topic status: planned',
+          taskState: 'Task status: completed',
+          hint: 'Important: 1/1 tasks completed ≠ mastery of an entire topic.',
+          emptyTasks: 'No tasks here yet. Add your first goal.',
+          emptySessions: 'No study sessions yet. Log your first practice session.',
+          editComing:
+            'The real app will open the existing edit form; this concept previews the action.',
+        },
+      };
+      const state = {
+        locale: 'ru',
+        screen: 'topic',
+        modal: null,
+        toast: null,
+        topic: {
+          title: 'Java Collections',
+          status: 'PLANNED',
+          description: 'List, Set, Map, ArrayList, HashMap и HashSet',
+        },
+        tasks: [
+          {
+            title: 'Изучить ArrayList',
+            status: 'COMPLETED',
+            difficulty: 'EASY',
+            priority: 'HIGH',
+            description: 'Изучить методы add(), get(), remove(), size(), contains().',
+          },
+        ],
+        sessions: [
+          {
+            duration: 30,
+            date: '2026-11-11',
+            note: 'Изучал ArrayList: add(), get(), remove(), size().',
+            completedTaskIds: [1],
+          },
+        ],
+      };
+      const t = (k) => text[state.locale][k] || k,
+        e = (s) =>
+          String(s ?? '').replace(
+            /[&<>"']/g,
+            (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch],
+          );
+      function lbl(v) {
+        return v === 'PLANNED'
+          ? t('planned')
+          : v === 'IN_PROGRESS'
+            ? t('inProgress')
+            : t('completed');
+      }
+      function btn(action, label, style = 'primary', icon = null) {
+        return `<button type="button" class="btn btn-${style}" data-action="${action}">${icon ? ico(icon) : ''}${label}</button>`;
+      }
+      function stepTitle(task) {
+        return e(task.title);
+      }
+      function formatSessionDate(date) {
+        const [y, m, d] = String(date).split('-').map(Number);
+        return new Intl.DateTimeFormat(state.locale === 'ru' ? 'ru-RU' : 'en-US', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }).format(new Date(y, m - 1, d));
+      }
+      function render() {
+        document.documentElement.lang = state.locale;
+        let main = '';
+        if (state.screen === 'topics') main = topicsView();
+        else if (state.screen === 'topic') main = topicView();
+        else if (state.screen === 'task') main = taskView();
+        else if (state.screen === 'sessions') main = sessionsView();
+        else main = settingsView();
+        let crumb =
+          state.screen === 'topics'
+            ? t('topics')
+            : state.screen === 'settings'
+              ? t('settings')
+              : state.screen === 'topic'
+                ? e(state.topic.title)
+                : state.screen === 'task'
+                  ? e(state.tasks[0]?.title || '')
+                  : t('sessions');
+        document.querySelector('#app').innerHTML =
+          `<div class="layout"><aside class="sidebar"><div class="brand"><div class="brand-mark">&lt;/&gt;</div>CodeProgress</div><div class="nav-caption">${t('space')}</div><nav aria-label="Primary"><button class="navitem" data-action="dashboard"><span class="nav-icon">${ico('home')}</span>${t('progress')}</button><button class="navitem ${state.screen !== 'settings' ? 'active' : ''}" data-action="topics"><span class="nav-icon">${ico('book')}</span>${t('topics')}</button><button class="navitem ${state.screen === 'settings' ? 'active' : ''}" data-action="settings"><span class="nav-icon">${ico('settings')}</span>${t('settings')}</button></nav><div class="side-bottom"><div class="tip"><span>✦</span>${t('sideTip')}</div><div class="mini-copy">CODEPROGRESS 2.0 · UX PHASE B</div></div></aside><div class="main"><header class="topbar"><div class="crumbs"><button data-action="topics">${t('topics')}</button>${state.screen !== 'topics' && state.screen !== 'settings' ? `${ico('chevron')}<strong>${crumb}</strong>` : ''}</div><div class="top-actions"><div class="locale" role="group" aria-label="Language"><button class="${state.locale === 'en' ? 'on' : ''}" data-action="lang-en" aria-pressed="${state.locale === 'en'}">EN</button><button class="${state.locale === 'ru' ? 'on' : ''}" data-action="lang-ru" aria-pressed="${state.locale === 'ru'}">RU</button></div><div class="avatar" aria-label="Demo profile">C</div></div></header><main class="workspace"><div class="demo-label">✦ ${t('demo')}</div>${main}</main></div></div><nav class="mobile-nav" aria-label="Mobile"><button data-action="dashboard">${ico('home')}${t('progress')}</button><button data-action="topics" class="${state.screen !== 'settings' ? 'active' : ''}">${ico('book')}${t('topics')}</button><button data-action="settings" class="${state.screen === 'settings' ? 'active' : ''}">${ico('settings')}${t('settings')}</button></nav>${state.modal ? renderModal() : ''}${state.toast ? `<div class="toast" role="status">${e(state.toast)}</div>` : ''}`;
+      }
+      function topicsView() {
+        const done = state.tasks.filter((x) => x.status === 'COMPLETED').length,
+          percent = state.tasks.length ? Math.round((done / state.tasks.length) * 100) : 0,
+          total = state.sessions.reduce((a, s) => a + s.duration, 0);
+        return `<section class="section-head"><div><div class="eyebrow">${t('topicsEye')}</div><h1>${t('topicsTitle')}</h1><p class="muted">${t('topicsSub')}</p></div>${btn('new-topic', t('newTopic'), 'primary', 'plus')}</section><div class="kpi-strip"><div class="kpi"><b>1</b>${t('oneTopic')}</div><div class="kpi"><b>${done}</b>${t('doneTasks')}</div><div class="kpi"><b>${total}</b>${t('studyTime')}</div><div class="kpi"><b>${state.sessions.length}</b>${t('loggedSessions')}</div></div><div class="content-grid"><div class="stack"><div><h2>${t('myTopics')}</h2><p class="small">${t('oneTopic')}</p></div><article class="card topic-card" data-action="topic" tabindex="0" role="button" aria-label="${t('topicOpen')}: ${e(state.topic.title)}"><div class="card-title-row"><div class="topic-icon">J</div><div style="flex:1;min-width:0"><h3>${e(state.topic.title)}</h3><div class="small">${t('topicStatus')}: ${lbl(state.topic.status)}</div></div><span class="pill yellow">${lbl(state.topic.status)}</span></div><p class="muted" style="font-size:13px">${e(state.topic.description)}</p><div class="progress-label"><span>${t('taskProgress')}</span><b>${done} ${t('of')} ${state.tasks.length} · ${percent}%</b></div><div class="track"><span style="width:${percent}%"></span></div><div class="topic-meta"><span>${ico('clock')} ${total} ${t('min')} · ${state.sessions.length} ${t('sessions').toLowerCase()}</span><span class="link">${t('topicOpen')} ${ico('arrow')}</span></div></article><button class="create-card" data-action="new-topic" style="width:100%"><span class="plus">+</span><strong>${t('addTrack')}</strong><span class="small">${t('addTrackSub')}</span></button></div><div class="stack"><div class="insight"><div class="eyebrow">✦ CODEPROGRESS METHOD</div><h3>${t('helpTitle')}</h3><p>${t('helpSub')}</p></div><div class="card note-card"><h3>${t('start')} →</h3><div class="micro-row"><div class="dot"></div>${t('help2')}</div><p class="muted">${t('hint')}</p></div></div></div>`;
+      }
+      function topicView() {
+        const done = state.tasks.filter((x) => x.status === 'COMPLETED').length,
+          percent = state.tasks.length ? Math.round((done / state.tasks.length) * 100) : 0,
+          total = state.sessions.reduce((a, s) => a + s.duration, 0);
+        return `<button class="back" data-action="topics">${ico('back')}${t('topics')}</button><div class="hero-topic"><div><div class="eyebrow">${t('topicEye')}</div><h1>${e(state.topic.title)}</h1><p class="muted">${e(state.topic.description)}</p><div class="topic-status-row"><span class="pill yellow">${t('topicStatus')}: ${lbl(state.topic.status)}</span><span class="pill violet">${done}/${state.tasks.length} ${t('tasks')} · ${percent}%</span></div></div><div class="hero-visual" aria-hidden="true">J</div></div><div class="split"><div class="stack"><section class="card panel"><div class="panel-head"><div><div class="eyebrow">${t('topicPathEyebrow')}</div><h2>${t('topicTaskPath')}</h2><p class="small">${t('topicTaskSub')}</p></div>${btn('new-task', t('addNext'), 'primary', 'plus')}</div><ol class="path">${state.tasks.length ? state.tasks.map((task, i) => `<li class="step"><div class="step-num ${task.status === 'COMPLETED' ? 'done' : ''}">${task.status === 'COMPLETED' ? ico('check') : String(i + 1).padStart(2, '0')}</div><div><div class="step-name">${stepTitle(task)}</div><small>${lbl(task.status)} · ${task.difficulty === 'EASY' ? t('easy') : task.difficulty}</small></div><button class="step-btn" data-action="task">${t('taskAction')}</button></li>`).join('') : `<div class="empty">${t('emptyTasks')}</div>`}<li class="step step-add"><div class="step-num">${ico('plus')}</div><div><div class="step-name">${t('addNext')}</div><small>${t('noNext')}</small></div><button class="step-btn" data-action="new-task">${ico('plus')}</button></li></ol></section><section class="card panel"><div class="panel-head"><div><h2>${t('sessions')}</h2><p class="small">${t('sessionsHint')}</p></div><button class="link" data-action="sessions">${t('viewSessions')} ${ico('arrow')}</button></div>${state.sessions.length ? `<div class="mini-sessions"><div class="datebox"><strong>${state.sessions[0].date.split('-')[2].replace(/^0/, '')}</strong><small>${new Intl.DateTimeFormat(state.locale === 'ru' ? 'ru-RU' : 'en-US', { month: 'short' }).format(new Date(Number(state.sessions[0].date.slice(0, 4)), Number(state.sessions[0].date.slice(5, 7)) - 1, Number(state.sessions[0].date.slice(8, 10)))).toUpperCase()}</small></div><div style="flex:1"><strong style="font-size:14px">${state.sessions[0].duration} ${t('min')} · ArrayList</strong><div class="small">${e(state.sessions[0].note)}</div></div>${btn('sessions', '↗', 'white')}</div>` : `<div class="empty">${t('emptySessions')}</div>`}<div class="topic-tools">${btn('new-session', t('recordSession'), 'soft', 'plus')}</div></section></div><div class="stack"><section class="card panel"><div class="eyebrow" style="margin-bottom:12px">${t('topicStats')}</div><div class="summary-row"><div class="summary-metric"><strong>${done}/${state.tasks.length}</strong><small>${t('doneTasks')}</small></div><div class="summary-metric"><strong>${total}</strong><small>${t('sessionMinutes')}</small></div><div class="summary-metric"><strong>${state.sessions.length}</strong><small>${t('loggedSessions')}</small></div></div><div class="progress-label"><span>${t('taskProgress')}</span><b>${percent}%</b></div><div class="track"><span style="width:${percent}%"></span></div><div class="reminder">${t('hint')}</div></section><section class="card panel"><h3>${t('topicControl')}</h3><p class="small">${t('topicControlSub')}</p><div class="rule"></div><div class="progress-label"><span>${t('topicStatus')}</span><span class="pill yellow">${lbl(state.topic.status)}</span></div><div class="topic-tools">${btn('status-topic', t('changeStatus'), 'white', 'flag')}${btn('edit-topic', t('editTopic'), 'white', 'pen')}</div></section></div></div>`;
+      }
+      function taskView() {
+        const task = state.tasks[0] || {
+          title: t('taskName'),
+          description: t('taskDesc'),
+          status: 'PLANNED',
+          difficulty: 'EASY',
+          priority: 'HIGH',
+        };
+        return `<button class="back" data-action="topic">${ico('back')}${t('taskBack')}</button><div class="task-shell"><div class="stack"><div class="task-head"><div class="eyebrow">${t('taskEye')} · ${e(state.topic.title)}</div><h1>${stepTitle(task)}</h1><div class="title-meta"><span class="pill ${task.status === 'COMPLETED' ? 'green' : 'violet'}">${lbl(task.status)}</span><span class="pill">${t('difficulty')}: ${t('easy')}</span><span class="pill yellow">${t('priority')}: ${t('high')}</span></div><p class="muted">${task.status === 'COMPLETED' ? t('taskDoneText') : t('taskSideText')}</p></div><section class="card objective"><div class="eyebrow">${t('taskGoal')}</div><h2 style="margin-top:10px">${t('taskGoal')}</h2><p>${e(task.description || t('none'))}</p><div class="rule"></div><h3>${t('taskProperties')}</h3><div class="tag-grid"><div class="field"><small>${t('difficulty')}</small><strong>${t('easy')}</strong></div><div class="field"><small>${t('priority')}</small><strong>${t('high')}</strong></div><div class="field"><small>${t('deadline')}</small><strong>${t('none')}</strong></div><div class="field"><small>${t('formStatus')}</small><strong>${lbl(task.status)}</strong></div></div></section><section class="card panel"><h3>${t('taskJournal')}</h3><p class="small">${t('taskJournalDesc')}</p><div class="topic-tools">${btn('sessions', t('viewSessions'), 'white', 'calendar')}</div></section></div><aside class="stack"><section class="card action-panel"><div class="eyebrow" style="margin-bottom:12px">${t('taskSideTitle')}</div><h2>${task.status === 'COMPLETED' ? t('completed') : t('start')}</h2><p class="muted" style="font-size:13px">${t('taskSideText')}</p>${btn('new-task', t('addNext'), 'primary', 'plus')}${btn('new-session', t('recordSession'), 'soft', 'clock')}<div class="rule"></div>${btn('status-task', t('taskStatus'), 'white', 'flag')}${btn('edit-task', t('changeTask'), 'white', 'pen')}</section><div class="reminder">${t('hint')}</div></aside></div>`;
+      }
+      function sessionsView() {
+        let total = state.sessions.reduce((a, s) => a + s.duration, 0);
+        return `<button class="back" data-action="topic">${ico('back')}${e(state.topic.title)}</button><div class="section-head"><div><div class="eyebrow">${t('sessionsEye')} · ${e(state.topic.title)}</div><h1>${t('sessionsTitle')}</h1><p class="muted">${t('sessionsSub')}</p></div>${btn('new-session', t('recordSession'), 'primary', 'plus')}</div><div class="content-grid"><div class="stack">${state.sessions.length ? state.sessions.map((s) => `<article class="card session-card"><div class="session-title"><div><div class="eyebrow">${formatSessionDate(s.date)}</div><h3 style="margin-top:6px">${t('sessionDetail')} · ${e(state.topic.title)}</h3></div><span class="session-amount">${s.duration} ${t('min')}</span></div><p>${e(s.note || '—')}</p>${s.completedTaskIds?.length ? `<div class="session-tags"><span class="pill green">${ico('check')} ${t('sessionsTasks')}: ${stepTitle(state.tasks[0] || { title: 'ArrayList' })}</span></div>` : ''}</article>`).join('') : `<div class="empty">${t('emptySessions')}</div>`}</div><div class="stack"><div class="card panel"><div class="eyebrow">${t('topicStats')}</div><div class="summary-row" style="grid-template-columns:1fr 1fr;margin-top:15px"><div class="summary-metric"><strong>${total}</strong><small>${t('studyTime')}</small></div><div class="summary-metric"><strong>${state.sessions.length}</strong><small>${t('loggedSessions')}</small></div></div><p class="small">${t('sessionCompleteHint')}</p></div><div class="insight" style="min-height:170px"><h3>${t('helpTitle')}</h3><p>${t('help2')}</p></div></div></div>`;
+      }
+      function settingsView() {
+        return `<div class="eyebrow">CODEPROGRESS PREFERENCES</div><h1>${t('settings')}</h1><p class="muted">${t('settingsInfo')}</p><div class="card panel" style="max-width:620px"><h2>${t('settingsTitle')}</h2><div class="topic-tools">${btn('lang-ru', 'Русский', state.locale === 'ru' ? 'primary' : 'white')}${btn('lang-en', 'English', state.locale === 'en' ? 'primary' : 'white')}</div></div>`;
+      }
+      function renderModal() {
+        let type = state.modal;
+        let title =
+          type === 'topic'
+            ? t('topicModal')
+            : type === 'task'
+              ? t('taskModal')
+              : type === 'session'
+                ? t('sessionModal')
+                : t('changeStatus');
+        let form =
+          type === 'topic'
+            ? `<div class="form-field"><label for="field-title">${t('titleLabel')} *</label><input required id="field-title" name="title" maxlength="120" placeholder="Spring Boot"/></div><div class="form-field"><label for="field-desc">${t('descLabel')}</label><textarea id="field-desc" name="desc" maxlength="2000"></textarea></div>`
+            : type === 'task'
+              ? `<div class="form-field"><label for="field-title">${t('taskTitleLabel')} *</label><input required id="field-title" name="title" maxlength="160" placeholder="HashMap"/></div><div class="form-field"><label for="field-desc">${t('descLabel')}</label><textarea id="field-desc" name="desc" maxlength="3000"></textarea></div><div class="form-grid"><div class="form-field"><label for="difficulty">${t('difficulty')}</label><select id="difficulty" name="difficulty"><option value="EASY">EASY</option><option value="MEDIUM">MEDIUM</option><option value="HARD">HARD</option></select></div><div class="form-field"><label for="priority">${t('priority')}</label><select id="priority" name="priority"><option value="MEDIUM">MEDIUM</option><option value="HIGH">HIGH</option><option value="LOW">LOW</option></select></div></div>`
+              : type === 'session'
+                ? `<div class="form-grid"><div class="form-field"><label for="date">${t('dateLabel')}</label><input id="date" name="date" type="date" value="2026-11-14" required/></div><div class="form-field"><label for="duration">${t('durationLabel')}</label><input id="duration" name="duration" type="number" value="30" min="1" max="2147483647" required/></div></div><div class="form-field"><label for="note">${t('noteLabel')}</label><textarea id="note" name="note"></textarea></div><p class="small">${t('sessionCompleteHint')}</p>`
+                : `<div class="form-field"><label for="status">${t('formStatus')}</label><select name="status" id="status"><option value="PLANNED">${t('planned')}</option><option value="IN_PROGRESS">${t('inProgress')}</option><option value="COMPLETED">${t('completed')}</option></select></div>`;
+        return `<div class="modal-backdrop" data-close="1"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><div><div class="eyebrow">CODEPROGRESS · DEMO</div><h2 id="modal-title">${title}</h2></div><button class="icon-btn" data-action="close-modal" aria-label="${t('cancel')}">×</button></div><form id="prototype-form">${form}<div class="modal-footer">${btn('close-modal', t('cancel'), 'white')}<button class="btn btn-primary" type="submit">${t('save')}</button></div><p class="footnote">${t('fakeToast')}</p></form></div></div>`;
+      }
+      function go(screen) {
+        state.screen = screen;
+        state.modal = null;
+        state.toast = null;
+        window.scrollTo(0, 0);
+        render();
+      }
+      let toastTimer;
+      function toast(message) {
+        state.toast = message;
+        render();
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          state.toast = null;
+          render();
+        }, 3300);
+      }
+      document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-action]');
+        if (!button) {
+          if (event.target.matches('[data-close]')) {
+            state.modal = null;
+            render();
+          }
+          return;
+        }
+        const a = button.dataset.action;
+        if (a === 'lang-ru' || a === 'lang-en') {
+          state.locale = a === 'lang-ru' ? 'ru' : 'en';
+          render();
+          return;
+        }
+        if (['topics', 'topic', 'task', 'sessions', 'settings'].includes(a)) {
+          go(a);
+          return;
+        }
+        if (a === 'dashboard') {
+          toast(
+            state.locale === 'ru'
+              ? 'Этот макет посвящён страницам тем и задач. Dashboard уже реализован в Phase A.'
+              : 'This concept focuses on topic and task pages. Dashboard was covered in Phase A.',
+          );
+          return;
+        }
+        if (a === 'new-topic' || a === 'new-task' || a === 'new-session') {
+          state.modal = a.replace('new-', '');
+          render();
+          document.querySelector('.modal input, .modal select')?.focus();
+          return;
+        }
+        if (a === 'status-topic' || a === 'status-task') {
+          state.modal = a;
+          render();
+          let el = document.querySelector('#status');
+          el.value = a === 'status-topic' ? state.topic.status : state.tasks[0]?.status;
+          el?.focus();
+          return;
+        }
+        if (a === 'edit-topic' || a === 'edit-task') {
+          toast(t('editComing'));
+          return;
+        }
+        if (a === 'close-modal') {
+          state.modal = null;
+          render();
+          return;
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && state.modal) {
+          state.modal = null;
+          render();
+        }
+        if (
+          (event.key === 'Enter' || event.key === ' ') &&
+          event.target.matches('.topic-card[role="button"]')
+        ) {
+          event.preventDefault();
+          go('topic');
+        }
+      });
+      document.addEventListener('submit', (event) => {
+        if (event.target.id !== 'prototype-form') return;
+        event.preventDefault();
+        const data = new FormData(event.target),
+          type = state.modal;
+        if (type === 'topic') {
+          const title = String(data.get('title') || '').trim();
+          if (!title) return;
+          state.topic = { title, status: 'PLANNED', description: String(data.get('desc') || '') };
+          state.tasks = [];
+          state.sessions = [];
+          state.screen = 'topic';
+        } else if (type === 'task') {
+          const title = String(data.get('title') || '').trim();
+          if (!title) return;
+          state.tasks.push({
+            title,
+            description: String(data.get('desc') || ''),
+            status: 'PLANNED',
+            difficulty: data.get('difficulty'),
+            priority: data.get('priority'),
+          });
+          state.screen = 'topic';
+        } else if (type === 'session') {
+          state.sessions.unshift({
+            date: String(data.get('date')),
+            duration: Number(data.get('duration')),
+            note: String(data.get('note') || ''),
+            completedTaskIds: [],
+          });
+          state.screen = 'sessions';
+        } else if (type === 'status-topic') {
+          state.topic.status = data.get('status');
+        } else if (type === 'status-task' && state.tasks.length) {
+          state.tasks[0].status = data.get('status');
+        }
+        state.modal = null;
+        toast(t('fakeToast'));
+      });
+      render();
+    </script>
+  </body>
+</html>

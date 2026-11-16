@@ -2,8 +2,10 @@ import { useState, type FormEvent } from 'react';
 import { HttpError } from '../../../shared/api/apiError';
 import type { TopicStatus, UpdateTopicStatusRequest } from '../api/topicsApi';
 import { getTopicErrorMessage } from '../lib/topicErrors';
-import { topicStatuses, topicStatusLabels } from '../model/topicStatus';
+import { topicStatuses } from '../model/topicStatus';
 import styles from './TopicMutationForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizeTopicStatus } from '../../../shared/i18n/domainLabels';
 
 type TopicStatusFormProps = {
   currentStatus: TopicStatus;
@@ -18,6 +20,7 @@ export function TopicStatusForm({
   onCancel,
   onSubmit,
 }: TopicStatusFormProps) {
+  const { t } = useI18n();
   const [status, setStatus] = useState<TopicStatus>(currentStatus);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export function TopicStatusForm({
           error.apiError?.fieldErrors.find((field) => field.field === 'status')?.message ?? null,
         );
       }
-      setSubmissionError(getTopicErrorMessage(error, 'The topic status could not be changed.'));
+      setSubmissionError(getTopicErrorMessage(error, t('topics.statusError'), t));
     }
   }
 
@@ -47,7 +50,7 @@ export function TopicStatusForm({
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className={styles.field}>
-        <label htmlFor="topic-status">Status</label>
+        <label htmlFor="topic-status">{t('topics.status')}</label>
         <select
           id="topic-status"
           name="status"
@@ -60,7 +63,7 @@ export function TopicStatusForm({
         >
           {topicStatuses.map((value) => (
             <option key={value} value={value}>
-              {topicStatusLabels[value]}
+              {localizeTopicStatus(t, value)}
             </option>
           ))}
         </select>
@@ -79,10 +82,10 @@ export function TopicStatusForm({
 
       <div className={styles.actions}>
         <button type="submit" disabled={isPending || status === currentStatus}>
-          {isPending ? 'Updating…' : 'Update status'}
+          {isPending ? t('topics.updatingStatus') : t('topics.updateStatus')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

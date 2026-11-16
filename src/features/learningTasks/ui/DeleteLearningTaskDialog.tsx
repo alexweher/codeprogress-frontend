@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import styles from '../../topics/ui/DeleteTopicDialog.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
 
 type DeleteLearningTaskDialogProps = {
   taskTitle: string;
@@ -20,6 +21,7 @@ export function DeleteLearningTaskDialog({
   onConfirm,
   onRecovery,
 }: DeleteLearningTaskDialogProps) {
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -64,14 +66,13 @@ export function DeleteLearningTaskDialog({
         aria-describedby="delete-learning-task-description delete-learning-task-consequence"
         onKeyDown={handleKeyDown}
       >
-        <p className={styles.eyebrow}>Destructive action</p>
-        <h2 id="delete-learning-task-title">Delete LearningTask?</h2>
+        <p className={styles.eyebrow}>{t('common.destructive')}</p>
+        <h2 id="delete-learning-task-title">{t('tasks.deleteTitle')}</h2>
         <p className={styles.warning} id="delete-learning-task-description">
-          You are about to delete <strong>{taskTitle}</strong>.
+          {t('common.aboutToDelete')} <strong>{taskTitle}</strong>.
         </p>
         <p className={styles.consequence} id="delete-learning-task-consequence">
-          This action is permanent and cannot be undone. Tasks included in study session history
-          cannot be deleted.
+          {t('tasks.deleteConsequence')}
         </p>
 
         {errorMessage ? (
@@ -83,7 +84,7 @@ export function DeleteLearningTaskDialog({
         <div className={styles.actions}>
           {recoveryAction ? (
             <button className={styles.secondary} type="button" onClick={onRecovery}>
-              {recoveryAction === 'back' ? 'Back to Topic' : 'Check task state'}
+              {recoveryAction === 'back' ? t('common.backToTopicButton') : t('tasks.checkState')}
             </button>
           ) : null}
           <button
@@ -93,10 +94,10 @@ export function DeleteLearningTaskDialog({
             onClick={onCancel}
             disabled={isPending}
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button className={styles.delete} type="button" onClick={onConfirm} disabled={isPending}>
-            {isPending ? 'Deleting…' : 'Delete'}
+            {isPending ? t('common.deleting') : t('common.delete')}
           </button>
         </div>
       </div>

@@ -7,12 +7,10 @@ import {
   type UpdateLearningTaskRequest,
 } from '../api/learningTasksApi';
 import { getLearningTaskErrorMessage } from '../lib/learningTaskErrors';
-import {
-  isLearningTaskDifficulty,
-  learningTaskDifficulties,
-  learningTaskDifficultyLabels,
-} from '../model/learningTaskMetadata';
+import { isLearningTaskDifficulty, learningTaskDifficulties } from '../model/learningTaskMetadata';
 import styles from './LearningTaskForms.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizeDifficulty } from '../../../shared/i18n/domainLabels';
 
 type FieldErrors = Partial<Record<'title' | 'description' | 'difficulty', string>>;
 
@@ -27,6 +25,7 @@ export function EditLearningTaskForm({
   onCancel: () => void;
   onSubmit: (request: UpdateLearningTaskRequest) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description ?? '');
   const [difficulty, setDifficulty] = useState<string>(task.difficulty);
@@ -37,12 +36,14 @@ export function EditLearningTaskForm({
     event.preventDefault();
     if (isPending) return;
     const errors: FieldErrors = {};
-    if (!title.trim()) errors.title = 'Enter a task title.';
+    if (!title.trim()) errors.title = t('tasks.titleRequired');
     else if (title.length > LEARNING_TASK_TITLE_MAX_LENGTH)
-      errors.title = `Use ${LEARNING_TASK_TITLE_MAX_LENGTH} characters or fewer.`;
+      errors.title = t('common.maxCharacters', { count: LEARNING_TASK_TITLE_MAX_LENGTH });
     if (description.length > LEARNING_TASK_DESCRIPTION_MAX_LENGTH)
-      errors.description = `Use ${LEARNING_TASK_DESCRIPTION_MAX_LENGTH} characters or fewer.`;
-    if (!isLearningTaskDifficulty(difficulty)) errors.difficulty = 'Choose a difficulty.';
+      errors.description = t('common.maxCharacters', {
+        count: LEARNING_TASK_DESCRIPTION_MAX_LENGTH,
+      });
+    if (!isLearningTaskDifficulty(difficulty)) errors.difficulty = t('tasks.difficultyRequired');
     setFieldErrors(errors);
     setSubmissionError(null);
     if (Object.keys(errors).length || !isLearningTaskDifficulty(difficulty)) return;
@@ -57,14 +58,14 @@ export function EditLearningTaskForm({
         }
         setFieldErrors(next);
       }
-      setSubmissionError(getLearningTaskErrorMessage(error, 'The task could not be updated.'));
+      setSubmissionError(getLearningTaskErrorMessage(error, t('tasks.updateError'), t));
     }
   }
 
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <label className={styles.field}>
-        <span>Title</span>
+        <span>{t('tasks.titleLabel')}</span>
         <input
           autoFocus
           required
@@ -77,7 +78,9 @@ export function EditLearningTaskForm({
         {fieldErrors.title ? <small role="alert">{fieldErrors.title}</small> : null}
       </label>
       <label className={styles.field}>
-        <span>Description (optional)</span>
+        <span>
+          {t('tasks.descriptionLabel')} {t('common.optional')}
+        </span>
         <textarea
           rows={4}
           maxLength={LEARNING_TASK_DESCRIPTION_MAX_LENGTH}
@@ -89,7 +92,7 @@ export function EditLearningTaskForm({
         {fieldErrors.description ? <small role="alert">{fieldErrors.description}</small> : null}
       </label>
       <label className={styles.field}>
-        <span>Difficulty</span>
+        <span>{t('tasks.difficulty')}</span>
         <select
           required
           value={difficulty}
@@ -99,7 +102,7 @@ export function EditLearningTaskForm({
         >
           {learningTaskDifficulties.map((value) => (
             <option key={value} value={value}>
-              {learningTaskDifficultyLabels[value]}
+              {localizeDifficulty(t, value)}
             </option>
           ))}
         </select>
@@ -112,10 +115,10 @@ export function EditLearningTaskForm({
       ) : null}
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save details'}
+          {isPending ? t('common.saving') : t('tasks.saveDetails')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

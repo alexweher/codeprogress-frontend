@@ -1,273 +1,352 @@
 .page {
-  width: min(72rem, 100%);
+  width: min(73.75rem, 100%);
   min-width: 0;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.25rem);
 }
-
-.pageHeader,
-.sectionHeading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem;
+  align-items: center;
+  min-height: 8.75rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  padding: clamp(1.15rem, 3vw, 1.7rem);
+  border-radius: var(--radius-card);
+  background: linear-gradient(135deg, #6447d8, #8068e9 58%, #6b91ea);
+  color: white;
+  box-shadow: 0 1.35rem 3rem rgba(76, 58, 162, 0.2);
 }
-
-.pageHeader {
-  margin-bottom: 2.5rem;
+.hero::after {
+  position: absolute;
+  inset: auto -4rem -6rem auto;
+  width: 19rem;
+  height: 19rem;
+  border: 3rem solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  content: '';
 }
-
-.pageHeader h1 {
+.hero h1 {
+  max-width: 39rem;
   margin: 0;
-  color: var(--color-text-strong);
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1;
+  color: white;
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  line-height: 1.05;
   letter-spacing: -0.055em;
 }
-
-.pageHeader > div > p:last-child,
-.sectionHeading > p,
-.errorState > p:not(.eyebrow),
-.emptyState > p:not(.eyebrow) {
-  max-width: 42rem;
-  margin: 0.9rem 0 0;
-  color: var(--color-text-muted);
-  line-height: 1.65;
+.hero p:not(.eyebrow) {
+  max-width: 36rem;
+  margin: 0.85rem 0 0;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.55;
 }
-
-.period {
-  flex: 0 0 auto;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-  font-size: 0.78rem;
-  font-weight: 750;
+.hero .eyebrow {
+  color: #e9e4ff;
 }
-
+.heroMark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: 5.25rem;
+  aspect-ratio: 1;
+  border: 0.55rem solid rgba(255, 255, 255, 0.18);
+  border-radius: 42% 58% 56% 44%;
+  background: #46bd72;
+  box-shadow: 0 1.3rem 2.5rem rgba(35, 26, 93, 0.22);
+  transform: rotate(6deg);
+}
+.heroMark span {
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 950;
+  transform: rotate(-6deg);
+}
 .eyebrow {
-  margin: 0 0 0.65rem;
-  color: var(--color-brand-strong);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.14em;
+  margin: 0 0 0.45rem;
+  color: var(--color-primary-strong);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
 }
-
-.sectionHeading {
-  margin-bottom: 1rem;
+.focusGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
 }
-
-.sectionHeading h2,
-.emptyState h2,
-.errorState h1 {
+.questCard,
+.pathCard,
+.activitySection {
+  padding: clamp(1.15rem, 2.5vw, 1.55rem);
+}
+.questCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: linear-gradient(
+    150deg,
+    var(--color-surface),
+    color-mix(in srgb, var(--color-primary-soft) 45%, white)
+  );
+}
+.cardHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+.cardHeading h2 {
   margin: 0;
   color: var(--color-text-strong);
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-size: clamp(1.2rem, 2.5vw, 1.65rem);
   letter-spacing: -0.035em;
 }
-
-.sectionHeading > p {
-  margin: 0;
-  font-size: 0.8rem;
-  text-align: right;
-}
-
-.sectionHeading > p span {
-  display: block;
-  margin-top: 0.2rem;
-  color: var(--color-text-subtle);
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin: 0;
-}
-
-.metricCard {
-  min-width: 0;
-  padding: 1.2rem;
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  background: var(--color-surface);
-  box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
-}
-
-.metricCard dt {
-  color: var(--color-text-subtle);
+.questTopic {
+  margin: 1.25rem 0 0.35rem;
+  color: var(--color-primary-strong);
   font-size: 0.76rem;
-  font-weight: 750;
-}
-
-.metricCard dd {
-  margin: 0.75rem 0 0;
-  overflow-wrap: anywhere;
-  color: var(--color-text-strong);
-  font-size: clamp(1.35rem, 3vw, 2.1rem);
   font-weight: 850;
-  letter-spacing: -0.04em;
 }
-
-.activitySection {
-  min-width: 0;
-  margin-top: 3rem;
+.questDescription {
+  max-width: 42rem;
+  margin: 0 0 1.3rem;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
 }
-
-.chartScroller {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  background: var(--color-surface);
+.questCard > a {
+  margin-top: auto;
 }
-
-.chart {
+.pathList {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(30, minmax(3.2rem, 1fr));
-  align-items: end;
-  gap: 0.45rem;
-  min-width: 66rem;
-  height: 19rem;
-  margin: 0;
+  gap: 0.85rem;
+  margin: 1rem 0 0;
   padding: 0;
   list-style: none;
 }
-
+.pathList::before {
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  left: 0.75rem;
+  width: 2px;
+  background: var(--color-border);
+  content: '';
+}
+.pathList li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.55rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+}
+.pathNode {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: white;
+  color: var(--color-text-muted);
+  font-weight: 950;
+}
+.currentPathItem .pathNode {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
+}
+.pathList strong,
+.pathList small {
+  display: block;
+}
+.pathList strong {
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pathList small {
+  margin-top: 0.15rem;
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+}
+.pathEmpty {
+  margin: 1rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.metric {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.15rem;
+}
+.metricIcon {
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 0.9rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: 1.15rem;
+  font-weight: 950;
+}
+.metric strong,
+.metric span {
+  display: block;
+}
+.metric strong {
+  color: var(--color-text-strong);
+  font-size: 1.35rem;
+  letter-spacing: -0.04em;
+}
+.metric div span {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+}
+.metric > :last-child:not(div) {
+  grid-column: 1 / -1;
+}
+.activitySection {
+  margin-top: 1rem;
+}
+.chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(2rem, 1fr));
+  align-items: end;
+  gap: clamp(0.35rem, 2vw, 0.85rem);
+  height: 13rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
 .chart li {
   display: grid;
-  grid-template-rows: 1.4rem 1fr auto auto;
+  grid-template-rows: 1.2rem 1fr 1.2rem;
   align-items: end;
-  gap: 0.35rem;
+  gap: 0.4rem;
   height: 100%;
   text-align: center;
 }
-
 .chart strong,
-.chart time,
-.chart small {
+.chart time {
   color: var(--color-text-muted);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
 }
-
 .chart strong {
   color: var(--color-text-strong);
 }
-
 .bar,
 .zeroBar {
   width: 100%;
-  height: max(0.25rem, var(--bar-height));
-  border-radius: 0.35rem 0.35rem 0.15rem 0.15rem;
-  background: var(--color-brand);
+  max-width: 3rem;
+  height: max(0.3rem, var(--bar-height));
+  margin: 0 auto;
+  border-radius: 0.65rem 0.65rem 0.25rem 0.25rem;
+  background: linear-gradient(180deg, #8d78ed, var(--color-primary));
 }
-
 .zeroBar {
-  height: 0.25rem;
-  background: var(--color-border-strong);
+  height: 0.3rem;
+  background: var(--color-border);
 }
-
-.chartNote {
-  margin: 0.75rem 0 0;
-  color: var(--color-text-subtle);
-  font-size: 0.75rem;
-}
-
-.emptyState,
 .errorState {
-  margin-bottom: 2.5rem;
-  padding: 1.4rem;
-  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, var(--color-border));
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--color-brand) 5%, var(--color-surface));
+  padding: 2rem;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
-
-.errorState {
+.errorState h1 {
   margin: 0;
-  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border));
-  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-surface));
+  color: var(--color-text-strong);
 }
-
 .errorState button {
-  min-height: 2.6rem;
-  margin-top: 1.25rem;
-  padding: 0.55rem 1rem;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
   border: 0;
-  border-radius: 0.7rem;
-  background: var(--color-brand);
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
   color: white;
-  font-weight: 800;
+  font-weight: 850;
   cursor: pointer;
 }
-
-.headingSkeleton,
-.cardSkeletons span {
-  border-radius: 1rem;
-  background: linear-gradient(
-    100deg,
-    var(--color-surface-muted) 30%,
-    var(--color-surface) 50%,
-    var(--color-surface-muted) 70%
-  );
-  background-size: 220% 100%;
-  animation: shimmer 1.4s linear infinite;
+.heroSkeleton {
+  height: 8.75rem;
 }
-
-.headingSkeleton {
-  width: min(24rem, 80%);
-  height: 6rem;
-  margin-bottom: 2rem;
-}
-
-.cardSkeletons {
+.loadingGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
 }
-
-.cardSkeletons span {
-  height: 7rem;
+.loadingGrid span {
+  height: 15rem;
 }
-
 .loadingText {
-  margin-top: 1.25rem;
   color: var(--color-text-muted);
 }
-
-@keyframes shimmer {
-  to {
-    background-position-x: -220%;
-  }
-}
-
 @media (max-width: 900px) {
-  .metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .focusGrid {
+    grid-template-columns: 1fr;
+  }
+  .pathCard {
+    min-width: 0;
   }
 }
-
-@media (max-width: 700px) {
+@media (max-width: 760px) {
   .page {
-    padding: 2.5rem 1.25rem;
+    padding: 0.8rem 0.8rem 1.25rem;
   }
-
-  .pageHeader,
-  .sectionHeading {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: 9rem;
+    padding: 1.2rem;
+  }
+  .heroMark {
+    position: absolute;
+    right: -1.2rem;
+    bottom: -2.3rem;
+    width: 6.5rem;
+    opacity: 0.25;
+  }
+  .hero h1,
+  .hero p {
+    position: relative;
+    z-index: 1;
+  }
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+  .chart {
+    height: 11rem;
+  }
+}
+@media (max-width: 390px) {
+  .cardHeading {
     align-items: flex-start;
     flex-direction: column;
-    gap: 1rem;
   }
-
-  .sectionHeading > p {
-    text-align: left;
-  }
-
-  .metrics,
-  .cardSkeletons {
-    grid-template-columns: 1fr;
+  .hero h1 {
+    font-size: 1.85rem;
   }
 }

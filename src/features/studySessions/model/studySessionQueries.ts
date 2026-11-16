@@ -24,10 +24,11 @@ export const studySessionQueryKeys = {
     [...studySessionQueryKeys.all(userId), 'detail', sessionId] as const,
 };
 
-export function useStudySessions(userId: number, topicId: number) {
+export function useStudySessions(userId: number, topicId: number, enabled = true) {
   return useQuery({
     queryKey: studySessionQueryKeys.list(userId, topicId),
     queryFn: ({ signal }) => getStudySessions(topicId, signal),
+    enabled,
   });
 }
 

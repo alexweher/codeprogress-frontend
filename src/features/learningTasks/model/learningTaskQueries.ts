@@ -27,10 +27,11 @@ export const learningTaskQueryKeys = {
     [...learningTaskQueryKeys.all(userId), 'detail', taskId] as const,
 };
 
-export function useLearningTasks(userId: number, topicId: number) {
+export function useLearningTasks(userId: number, topicId: number, enabled = true) {
   return useQuery({
     queryKey: learningTaskQueryKeys.list(userId, topicId),
     queryFn: ({ signal }) => getLearningTasks(topicId, signal),
+    enabled,
   });
 }
 

@@ -128,13 +128,10 @@ async function signInAndOpenTopic(
   waitForDetails = true,
 ) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/topics/7', queryClient);
   await view.user.type(screen.getByLabelText('Email'), currentUser.email);
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
   if (waitForDetails) {
     await screen.findByRole('heading', { name: topic.title });
   }
@@ -226,14 +223,15 @@ describe('StudySessions list and create flow', () => {
     }
   });
 
-  it('renders session date, duration, note and completed task title', async () => {
+  it('renders session date, duration and note without task completion claims', async () => {
     await signInAndOpenTopic(fetchMock);
 
     const list = await screen.findByRole('list', { name: 'Study sessions' });
-    expect(within(list).getByText('29.10.2026')).toBeVisible();
-    expect(within(list).getByText('45 min')).toBeVisible();
+    expect(within(list).getByText('October 29, 2026')).toBeVisible();
+    expect(within(list).getByText('45 minutes')).toBeVisible();
     expect(within(list).getByText(session.note ?? '')).toBeVisible();
-    expect(within(list).getByText(task.title)).toBeVisible();
+    expect(within(list).queryByText(task.title)).not.toBeInTheDocument();
+    expect(within(list).queryByText('Completed tasks')).not.toBeInTheDocument();
   });
 
   it('shows loading, empty, error and Retry states without pagination', async () => {

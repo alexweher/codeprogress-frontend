@@ -1,230 +1,286 @@
 import type { CSSProperties } from 'react';
 import { HttpError, NetworkError, ResponseFormatError } from '../../shared/api/apiError';
 import { useAuth } from '../../features/auth/model/useAuth';
-import type {
-  DashboardActivityResponse,
-  DashboardSummaryResponse,
-} from '../../features/dashboard/api/dashboardApi';
 import { getRecentActivityRange } from '../../features/dashboard/lib/activityRange';
+import { useDashboardLearningFocus } from '../../features/dashboard/model/dashboardLearningFocus';
 import {
   useDashboardActivity,
   useDashboardSummary,
 } from '../../features/dashboard/model/dashboardQueries';
+import { useI18n } from '../../shared/i18n/useI18n';
+import type { I18nContextValue } from '../../shared/i18n/I18nContext';
+import {
+  Badge,
+  ButtonLink,
+  Card,
+  EmptyState,
+  Progress,
+  Skeleton,
+} from '../../shared/ui/UiPrimitives';
 import styles from './DashboardPage.module.css';
 
-function formatDate(date: string | null) {
-  if (!date) {
-    return 'No study sessions yet';
-  }
-
-  const [year, month, day] = date.split('-').map(Number);
-  if (year === undefined || month === undefined || day === undefined) {
-    return date;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(year, month - 1, day));
-}
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof NetworkError) {
-    return 'Dashboard is unavailable because CodeProgress API could not be reached.';
-  }
-
-  if (error instanceof ResponseFormatError) {
-    return 'CodeProgress returned dashboard data in an unexpected format.';
-  }
-
-  if (error instanceof HttpError) {
-    return error.apiError?.message ?? 'Dashboard data could not be loaded.';
-  }
-
-  return 'Dashboard data could not be loaded.';
-}
-
-function isEmptyDashboard(summary: DashboardSummaryResponse, activity: DashboardActivityResponse) {
-  return (
-    summary.totalTopics === 0 &&
-    summary.plannedTasks === 0 &&
-    summary.activeTasks === 0 &&
-    summary.completedTasks === 0 &&
-    summary.totalStudyMinutes === 0 &&
-    summary.studyMinutesLast7Days === 0 &&
-    summary.studySessionsCount === 0 &&
-    summary.completionPercent === 0 &&
-    summary.lastStudyDate === null &&
-    activity.days.every((day) => day.studyMinutes === 0 && day.studySessionsCount === 0)
-  );
+function getErrorMessage(error: unknown, t: I18nContextValue['t']) {
+  if (error instanceof NetworkError) return t('dashboard.networkError');
+  if (error instanceof ResponseFormatError) return t('dashboard.responseError');
+  if (error instanceof HttpError) return error.apiError?.message ?? t('dashboard.loadError');
+  return t('dashboard.loadError');
 }
 
 function DashboardLoading() {
+  const { t } = useI18n();
   return (
     <main className={styles.page} aria-busy="true">
-      <div className={styles.headingSkeleton} aria-hidden="true" />
-      <div className={styles.cardSkeletons} aria-hidden="true">
-        {Array.from({ length: 6 }, (_, index) => (
-          <span key={index} />
-        ))}
+      <Skeleton className={styles.heroSkeleton} />
+      <div className={styles.loadingGrid}>
+        <Skeleton />
+        <Skeleton />
       </div>
       <p className={styles.loadingText} role="status">
-        Loading dashboard…
+        {t('dashboard.loading')}
       </p>
     </main>
   );
 }
 
+function statusKey(status: 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED') {
+  return status === 'IN_PROGRESS'
+    ? 'enum.inProgress'
+    : status === 'COMPLETED'
+      ? 'enum.completed'
+      : 'enum.planned';
+}
+
 export function DashboardPage() {
+  const { locale, t } = useI18n();
   const { user } = useAuth();
+  const userId = user?.id ?? 0;
   const range = getRecentActivityRange();
-  const summaryQuery = useDashboardSummary(user?.id ?? 0);
-  const activityQuery = useDashboardActivity(user?.id ?? 0, range);
+  const summaryQuery = useDashboardSummary(userId);
+  const activityQuery = useDashboardActivity(userId, range);
+  const focus = useDashboardLearningFocus(userId);
 
-  if (summaryQuery.isPending || activityQuery.isPending) {
+  if (summaryQuery.isPending || activityQuery.isPending || focus.isPending)
     return <DashboardLoading />;
-  }
-
-  const error = summaryQuery.error ?? activityQuery.error;
-  if (error) {
-    return (
-      <main className={styles.page}>
-        <section className={styles.errorState} role="alert" aria-labelledby="dashboard-error-title">
-          <p className={styles.eyebrow}>Dashboard unavailable</p>
-          <h1 id="dashboard-error-title">We couldn’t load your progress.</h1>
-          <p>{getErrorMessage(error)}</p>
-          <button
-            type="button"
-            onClick={() => {
-              void summaryQuery.refetch();
-              void activityQuery.refetch();
-            }}
-          >
-            Try again
-          </button>
-        </section>
-      </main>
-    );
-  }
-
-  const summary = summaryQuery.data;
-  const activity = activityQuery.data;
-
-  if (!summary || !activity) {
+  const error = summaryQuery.error ?? activityQuery.error ?? focus.error;
+  if (error)
     return (
       <main className={styles.page}>
         <section className={styles.errorState} role="alert">
-          <p className={styles.eyebrow}>Dashboard unavailable</p>
-          <h1>We couldn’t load your progress.</h1>
-          <p>CodeProgress returned dashboard data in an unexpected format.</p>
+          <p className={styles.eyebrow}>{t('dashboard.unavailable')}</p>
+          <h1>{t('dashboard.loadTitle')}</h1>
+          <p>{getErrorMessage(error, t)}</p>
           <button
             type="button"
             onClick={() => {
               void summaryQuery.refetch();
               void activityQuery.refetch();
+              void focus.refetch();
             }}
           >
-            Try again
+            {t('common.tryAgain')}
           </button>
         </section>
       </main>
     );
-  }
 
-  const metrics = [
-    ['Total topics', summary.totalTopics],
-    ['Planned tasks', summary.plannedTasks],
-    ['Active tasks', summary.activeTasks],
-    ['Completed tasks', summary.completedTasks],
-    ['Total study minutes', summary.totalStudyMinutes],
-    ['Minutes in the last 7 days', summary.studyMinutesLast7Days],
-    ['Study sessions', summary.studySessionsCount],
-    ['Task completion', `${summary.completionPercent}%`],
-    ['Last study date', formatDate(summary.lastStudyDate)],
-  ] as const;
-  const maxMinutes = Math.max(...activity.days.map((day) => day.studyMinutes), 1);
-  const empty = isEmptyDashboard(summary, activity);
+  const summary = summaryQuery.data;
+  const activity = activityQuery.data;
+  if (!summary || !activity)
+    return (
+      <main className={styles.page}>
+        <section className={styles.errorState} role="alert">
+          <h1>{t('dashboard.loadTitle')}</h1>
+          <p>{t('dashboard.responseError')}</p>
+        </section>
+      </main>
+    );
+
+  const totalTasks = summary.plannedTasks + summary.activeTasks + summary.completedTasks;
+  const recentDays = activity.days.slice(-7);
+  const maxMinutes = Math.max(...recentDays.map((day) => day.studyMinutes), 1);
+  const nextTask = focus.nextTask;
+  const hasTopics = focus.topics.length > 0;
+  const hasTasks = focus.tasks.length > 0;
+  const actionTo = nextTask
+    ? `/app/tasks/${nextTask.id}`
+    : focus.focusTopic
+      ? `/app/topics/${focus.focusTopic.id}`
+      : '/app/topics';
+  const actionLabel = nextTask
+    ? nextTask.status === 'IN_PROGRESS'
+      ? t('dashboard.continueTask')
+      : t('dashboard.startNextTask')
+    : hasTasks
+      ? t('dashboard.addNextTask')
+      : hasTopics
+        ? t('dashboard.addFirstTask')
+        : t('dashboard.createFirstTopic');
 
   return (
     <main className={styles.page}>
-      <header className={styles.pageHeader}>
+      <header className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>Learning overview</p>
-          <h1>Dashboard</h1>
-          <p>Track your topics, tasks, and study rhythm from CodeProgress API.</p>
+          <p className={styles.eyebrow}>{t('dashboard.eyebrow')}</p>
+          <h1>{t('dashboard.heroTitle')}</h1>
+          <p>{t('dashboard.heroText')}</p>
         </div>
-        <span className={styles.period}>Last 30 calendar days</span>
+        <div className={styles.heroMark} aria-hidden="true">
+          <span>&lt;/&gt;</span>
+        </div>
       </header>
 
-      {empty ? (
-        <section className={styles.emptyState} aria-labelledby="empty-dashboard-title">
-          <p className={styles.eyebrow}>Ready when you are</p>
-          <h2 id="empty-dashboard-title">Your learning activity will appear here.</h2>
-          <p>
-            There are no topics, tasks, or study sessions yet. Zero values are valid and your
-            dashboard is working normally.
-          </p>
+      {!hasTopics ? (
+        <EmptyState
+          icon="+"
+          title={t('dashboard.emptyTitle')}
+          description={t('dashboard.emptyText')}
+          action={<ButtonLink to="/app/topics">{t('dashboard.createFirstTopic')}</ButtonLink>}
+        />
+      ) : null}
+
+      {hasTopics ? (
+        <section className={styles.focusGrid} aria-label={t('dashboard.learningFocus')}>
+          <Card className={styles.questCard} id="next-step">
+            <div className={styles.cardHeading}>
+              <div>
+                <p className={styles.eyebrow}>{t('dashboard.nextStepEyebrow')}</p>
+                <h2>
+                  {nextTask?.title ??
+                    (hasTasks ? t('dashboard.allDoneTitle') : t('dashboard.noTasksTitle'))}
+                </h2>
+              </div>
+              <Badge tone={nextTask?.status === 'IN_PROGRESS' ? 'success' : 'primary'}>
+                {nextTask
+                  ? t(statusKey(nextTask.status))
+                  : hasTasks
+                    ? t('dashboard.allDoneBadge')
+                    : t('dashboard.getStarted')}
+              </Badge>
+            </div>
+            <p className={styles.questTopic}>
+              {nextTask
+                ? nextTask.topic.title
+                : (focus.focusTopic?.title ?? t('dashboard.noTopic'))}
+            </p>
+            <p className={styles.questDescription}>
+              {nextTask?.description ??
+                (hasTasks
+                  ? t('dashboard.allDoneText')
+                  : hasTopics
+                    ? t('dashboard.noTasksText')
+                    : t('dashboard.emptyText'))}
+            </p>
+            <ButtonLink to={actionTo}>
+              {actionLabel}
+              <span aria-hidden="true">→</span>
+            </ButtonLink>
+          </Card>
+
+          <Card className={styles.pathCard}>
+            <div className={styles.cardHeading}>
+              <div>
+                <p className={styles.eyebrow}>{t('dashboard.learningPath')}</p>
+                <h2>{focus.focusTopic?.title ?? t('dashboard.yourPath')}</h2>
+              </div>
+            </div>
+            {focus.pathTasks.length ? (
+              <ol className={styles.pathList}>
+                {focus.pathTasks.map((task) => (
+                  <li
+                    key={task.id}
+                    className={task.id === nextTask?.id ? styles.currentPathItem : undefined}
+                  >
+                    <span className={styles.pathNode} aria-hidden="true">
+                      {task.status === 'COMPLETED' ? '✓' : '•'}
+                    </span>
+                    <div>
+                      <strong>{task.title}</strong>
+                      <small>{t(statusKey(task.status))}</small>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className={styles.pathEmpty}>
+                {hasTopics ? t('dashboard.pathEmpty') : t('dashboard.pathStartsWithTopic')}
+              </p>
+            )}
+          </Card>
         </section>
       ) : null}
 
-      <section aria-labelledby="summary-title">
-        <div className={styles.sectionHeading}>
+      <section className={styles.metrics} aria-label={t('dashboard.summary')}>
+        <Card className={styles.metric}>
+          <span className={styles.metricIcon}>✓</span>
           <div>
-            <p className={styles.eyebrow}>Current totals</p>
-            <h2 id="summary-title">Progress summary</h2>
+            <strong>
+              {summary.completedTasks} / {totalTasks}
+            </strong>
+            <span>{t('dashboard.completedTasks')}</span>
           </div>
+          <Progress
+            value={summary.completionPercent}
+            label={t('dashboard.progressAria', { percent: summary.completionPercent })}
+          />
+        </Card>
+        <Card className={styles.metric}>
+          <span className={styles.metricIcon}>◷</span>
+          <div>
+            <strong>
+              {new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US').format(
+                summary.totalStudyMinutes,
+              )}
+            </strong>
+            <span>{t('dashboard.totalMinutes')}</span>
+          </div>
+        </Card>
+        <Card className={styles.metric}>
+          <span className={styles.metricIcon}>◎</span>
+          <div>
+            <strong>{summary.studySessionsCount}</strong>
+            <span>{t('dashboard.sessions')}</span>
+          </div>
+        </Card>
+      </section>
+
+      <Card className={styles.activitySection}>
+        <div className={styles.cardHeading}>
+          <div>
+            <p className={styles.eyebrow}>{t('dashboard.dailyActivity')}</p>
+            <h2>{t('dashboard.lastSevenDays')}</h2>
+          </div>
+          <Badge tone="info">{t('dashboard.minutesUnit')}</Badge>
         </div>
-        <dl className={styles.metrics}>
-          {metrics.map(([label, value]) => (
-            <div className={styles.metricCard} key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
+        <ol className={styles.chart} aria-label={t('dashboard.chartLabelSeven')}>
+          {recentDays.map((day) => (
+            <li
+              key={day.date}
+              aria-label={t('dashboard.dayAria', {
+                date: day.date,
+                minutes: day.studyMinutes,
+                sessions: day.studySessionsCount,
+              })}
+            >
+              <strong>{day.studyMinutes}</strong>
+              <span
+                className={day.studyMinutes ? styles.bar : styles.zeroBar}
+                style={
+                  {
+                    '--bar-height': `${Math.round((day.studyMinutes / maxMinutes) * 100)}%`,
+                  } as CSSProperties
+                }
+                aria-hidden="true"
+              />
+              <time dateTime={day.date}>
+                {new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US', {
+                  weekday: 'short',
+                  timeZone: 'UTC',
+                }).format(new Date(`${day.date}T00:00:00Z`))}
+              </time>
+            </li>
           ))}
-        </dl>
-      </section>
-
-      <section className={styles.activitySection} aria-labelledby="activity-title">
-        <div className={styles.sectionHeading}>
-          <div>
-            <p className={styles.eyebrow}>Daily activity</p>
-            <h2 id="activity-title">Study minutes by day</h2>
-          </div>
-          <p>
-            <time dateTime={activity.from}>{formatDate(activity.from)}</time>
-            {' – '}
-            <time dateTime={activity.to}>{formatDate(activity.to)}</time>
-            <span> · {activity.timeZone}</span>
-          </p>
-        </div>
-
-        <div className={styles.chartScroller} tabIndex={0} aria-label="Scrollable daily activity">
-          <ol className={styles.chart} aria-label="Daily study activity for the last 30 days">
-            {activity.days.map((day) => {
-              const height = `${Math.round((day.studyMinutes / maxMinutes) * 100)}%`;
-              const barStyle = { '--bar-height': height } as CSSProperties;
-
-              return (
-                <li
-                  key={day.date}
-                  aria-label={`${day.date}: ${day.studyMinutes} study minutes, ${day.studySessionsCount} sessions`}
-                >
-                  <strong>{day.studyMinutes}</strong>
-                  <span
-                    className={day.studyMinutes === 0 ? styles.zeroBar : styles.bar}
-                    style={barStyle}
-                    aria-hidden="true"
-                  />
-                  <time dateTime={day.date}>{day.date.slice(5)}</time>
-                  <small>{day.studySessionsCount} sessions</small>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-        <p className={styles.chartNote}>Each column shows minutes and session count for one day.</p>
-      </section>
+        </ol>
+      </Card>
     </main>
   );
 }

@@ -119,16 +119,10 @@ async function loginAtTask(
   queryClient?: QueryClient,
 ) {
   installMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/tasks/11', queryClient);
   await view.user.type(screen.getByLabelText('Email'), user.email);
   await view.user.type(screen.getByLabelText('Password'), 'synthetic-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await screen.findByRole('heading', { name: 'My Topics' });
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
-  await screen.findByRole('heading', { name: topic.title });
-  await view.user.click(await screen.findByRole('link', { name: task.title }));
   return view;
 }
 
@@ -241,7 +235,8 @@ describe('LearningTask details, update, status and planning', () => {
     );
     const view = await loginAtTask(fetchMock, { put }, queryClient);
     await screen.findByRole('heading', { name: task.title });
-    await view.user.click(screen.getByRole('button', { name: 'Edit details' }));
+    await view.user.click(screen.getByRole('button', { name: 'Task actions' }));
+    await view.user.click(screen.getByRole('menuitem', { name: 'Edit details' }));
     const form = screen.getByRole('heading', { name: 'Update learning task' }).parentElement;
     if (!form) throw new Error('Missing edit form');
     const title = within(form).getByLabelText('Title');
@@ -271,7 +266,8 @@ describe('LearningTask details, update, status and planning', () => {
     );
     const view = await loginAtTask(fetchMock, { put });
     await screen.findByRole('heading', { name: task.title });
-    await view.user.click(screen.getByRole('button', { name: 'Edit details' }));
+    await view.user.click(screen.getByRole('button', { name: 'Task actions' }));
+    await view.user.click(screen.getByRole('menuitem', { name: 'Edit details' }));
     await view.user.click(screen.getByRole('button', { name: 'Save details' }));
     expect(await screen.findByRole('button', { name: 'Saving…' })).toBeDisabled();
     expect(put).toHaveBeenCalledTimes(1);
@@ -294,7 +290,8 @@ describe('LearningTask details, update, status and planning', () => {
     );
     const view = await loginAtTask(fetchMock, { status }, queryClient);
     await screen.findByRole('heading', { name: task.title });
-    await view.user.click(screen.getByRole('button', { name: 'Change status' }));
+    await view.user.click(screen.getByRole('button', { name: 'Task actions' }));
+    await view.user.click(screen.getByRole('menuitem', { name: 'Change status' }));
     const select = screen.getByLabelText<HTMLSelectElement>('Status');
     expect(Array.from(select.options).map((option) => option.value)).toEqual([
       'PLANNED',
@@ -302,7 +299,7 @@ describe('LearningTask details, update, status and planning', () => {
       'COMPLETED',
     ]);
     await view.user.selectOptions(select, 'COMPLETED');
-    await view.user.click(screen.getAllByRole('button', { name: 'Change status' })[1]!);
+    await view.user.click(screen.getByRole('button', { name: 'Change status' }));
     expect(await screen.findByText('Learning task status changed.')).toBeVisible();
     expect(status).toHaveBeenCalledWith({ status: 'COMPLETED' });
     expect(queryClient.getQueryState(dashboardQueryKeys.summary(42))?.isInvalidated).toBe(true);
@@ -317,7 +314,8 @@ describe('LearningTask details, update, status and planning', () => {
     );
     const view = await loginAtTask(fetchMock, { planning }, queryClient);
     await screen.findByRole('heading', { name: task.title });
-    await view.user.click(screen.getByRole('button', { name: 'Edit planning' }));
+    await view.user.click(screen.getByRole('button', { name: 'Task actions' }));
+    await view.user.click(screen.getByRole('menuitem', { name: 'Edit planning' }));
     const deadline = screen.getByLabelText('Deadline (optional)');
     await view.user.clear(deadline);
     await view.user.selectOptions(screen.getByLabelText('Priority'), 'LOW');
@@ -358,9 +356,10 @@ describe('LearningTask details, update, status and planning', () => {
     );
     await screen.findByRole('heading', { name: task.title });
     expect(screen.queryByText('Other user task')).not.toBeInTheDocument();
-    await view.user.click(screen.getByRole('button', { name: 'Change status' }));
+    await view.user.click(screen.getByRole('button', { name: 'Task actions' }));
+    await view.user.click(screen.getByRole('menuitem', { name: 'Change status' }));
     await view.user.selectOptions(screen.getByLabelText('Status'), 'COMPLETED');
-    await view.user.click(screen.getAllByRole('button', { name: 'Change status' })[1]!);
+    await view.user.click(screen.getByRole('button', { name: 'Change status' }));
     await view.user.click(screen.getByRole('button', { name: 'Logout' }));
     resolveStatus?.(json({ ...task, status: 'COMPLETED' }));
     await waitFor(() => expect(queryClient.getQueryCache().getAll()).toHaveLength(0));
@@ -369,14 +368,13 @@ describe('LearningTask details, update, status and planning', () => {
   it('supports keyboard access to all action forms', async () => {
     const view = await loginAtTask(fetchMock);
     await screen.findByRole('heading', { name: task.title });
-    const edit = screen.getByRole('button', { name: 'Edit details' });
-    edit.focus();
-    await view.user.keyboard('{Enter}');
+    const actions = screen.getByRole('button', { name: 'Task actions' });
+    actions.focus();
+    await view.user.keyboard('{ArrowDown}{Enter}');
     expect(screen.getByLabelText('Title')).toHaveFocus();
     await view.user.click(screen.getByRole('button', { name: 'Cancel' }));
-    const planning = screen.getByRole('button', { name: 'Edit planning' });
-    planning.focus();
-    await view.user.keyboard('{Enter}');
+    actions.focus();
+    await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Enter}');
     expect(screen.getByLabelText('Deadline (optional)')).toHaveFocus();
   });
 });

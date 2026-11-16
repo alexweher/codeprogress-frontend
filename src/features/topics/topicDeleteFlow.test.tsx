@@ -99,16 +99,17 @@ async function signInAndOpenTopic(
   queryClient?: QueryClient,
 ) {
   installApiMock(fetchMock, handlers);
-  const view = renderApp('/login', queryClient);
+  const view = renderApp('/app/topics/7', queryClient);
   await view.user.type(screen.getByLabelText('Email'), 'delete@example.com');
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
-  await screen.findByRole('heading', { name: /you’re signed in/i });
-  await view.user.click(screen.getByRole('link', { name: /topics/i }));
-  await screen.findByRole('heading', { name: 'My Topics' });
-  await view.user.click(await screen.findByRole('link', { name: topic.title }));
   await screen.findByRole('heading', { name: topic.title });
   return view;
+}
+
+async function openDeleteDialog(user: Awaited<ReturnType<typeof signInAndOpenTopic>>['user']) {
+  await user.click(screen.getByRole('button', { name: 'Topic actions' }));
+  await user.click(screen.getByRole('menuitem', { name: 'Delete Topic' }));
 }
 
 function deleteCalls(fetchMock: Mock<typeof fetch>) {
@@ -159,9 +160,9 @@ describe('safe topic deletion', () => {
   it('shows Delete Topic and opens a labelled confirmation without sending DELETE', async () => {
     const { user } = await signInAndOpenTopic(fetchMock);
 
-    const trigger = screen.getByRole('button', { name: 'Delete Topic' });
+    const trigger = screen.getByRole('button', { name: 'Topic actions' });
     expect(trigger).toBeVisible();
-    await user.click(trigger);
+    await openDeleteDialog(user);
 
     const dialog = screen.getByRole('dialog', { name: 'Delete Topic?' });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
@@ -172,8 +173,8 @@ describe('safe topic deletion', () => {
 
   it('cancels without a request and restores focus to the trigger', async () => {
     const { user } = await signInAndOpenTopic(fetchMock);
-    const trigger = screen.getByRole('button', { name: 'Delete Topic' });
-    await user.click(trigger);
+    const trigger = screen.getByRole('button', { name: 'Topic actions' });
+    await openDeleteDialog(user);
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -198,7 +199,7 @@ describe('safe topic deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByText('Topic deleted successfully.')).toBeVisible();
@@ -227,7 +228,7 @@ describe('safe topic deletion', () => {
       list: () => Promise.resolve(jsonResponse(deleted ? [] : [topic])),
       delete: deleteHandler,
     });
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('button', { name: 'Deleting…' })).toBeDisabled();
@@ -255,7 +256,7 @@ describe('safe topic deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/learning tasks or study sessions/i);
@@ -268,7 +269,7 @@ describe('safe topic deletion', () => {
       delete: () =>
         Promise.resolve(jsonResponse(apiError(404, 'Topic with id 7 was not found'), 404)),
     });
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -290,7 +291,7 @@ describe('safe topic deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('heading', { name: /sign in to codeprogress/i })).toBeVisible();
@@ -307,7 +308,7 @@ describe('safe topic deletion', () => {
       },
       delete: () => Promise.reject(new TypeError('Failed to fetch')),
     });
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/cannot confirm whether/i);
@@ -330,7 +331,7 @@ describe('safe topic deletion', () => {
       },
       queryClient,
     );
-    await user.click(screen.getByRole('button', { name: 'Delete Topic' }));
+    await openDeleteDialog(user);
     await user.click(screen.getByRole('button', { name: 'Delete' }));
     await user.click(screen.getByRole('button', { name: 'Logout' }));
 
@@ -350,8 +351,10 @@ describe('safe topic deletion', () => {
 
   it('supports Escape, traps keyboard focus and restores it after closing', async () => {
     const { user } = await signInAndOpenTopic(fetchMock);
-    const trigger = screen.getByRole('button', { name: 'Delete Topic' });
+    const trigger = screen.getByRole('button', { name: 'Topic actions' });
     trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    await user.keyboard('{ArrowDown}{ArrowDown}');
     await user.keyboard('{Enter}');
     const cancel = screen.getByRole('button', { name: 'Cancel' });
     const confirm = screen.getByRole('button', { name: 'Delete' });

@@ -1,15 +1,40 @@
 .page {
-  width: min(72rem, 100%);
+  width: min(76rem, 100%);
   min-width: 0;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
 }
-.backLink {
+.backLink,
+.breadcrumbs a {
   display: inline-block;
   margin-bottom: 2rem;
   color: var(--color-brand-strong);
   font-size: 0.85rem;
   font-weight: 800;
   text-underline-offset: 0.2em;
+}
+
+.breadcrumbs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+}
+
+.breadcrumbs a,
+.breadcrumbs span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.breadcrumbs span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .pageHeader,
 .sectionHeading {
@@ -19,7 +44,15 @@
   gap: 2rem;
 }
 .pageHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 1.15rem;
+  align-items: center;
+  padding: clamp(1.25rem, 3vw, 1.8rem);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(circle at 90% 0, rgba(100, 71, 221, 0.16), transparent 35%),
+    var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 .pageHeader h1,
 .sectionHeading h2,
@@ -31,8 +64,47 @@
   overflow-wrap: anywhere;
 }
 .pageHeader h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1;
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.05;
+}
+
+.headerCopy {
+  min-width: 0;
+}
+
+.headerCopy > p:last-child {
+  max-width: 46rem;
+  margin: 0.8rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.heroAction {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+  justify-items: end;
+}
+
+.heroAction button {
+  min-height: 3rem;
+  padding: 0.75rem 1.1rem;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: white;
+  font-weight: 850;
+  cursor: pointer;
+  box-shadow: 0 0.7rem 1.4rem rgba(100, 71, 221, 0.22);
+}
+
+.heroAction button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+.heroAction button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 .sectionHeading h2,
 .actionCard h2 {
@@ -68,7 +140,7 @@
 .messageState {
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
   background: var(--color-surface);
   box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
 }
@@ -112,6 +184,22 @@
   line-height: 1.7;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.reconciliationNote {
+  margin: 1.25rem 0 0;
+  padding: 0.9rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--color-info-soft);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.reconciliationNote a {
+  color: var(--color-primary-strong);
+  font-weight: 800;
+  text-underline-offset: 0.18em;
 }
 .emptyDescription,
 .hint {
@@ -178,13 +266,20 @@
 }
 @media (max-width: 700px) {
   .page {
-    padding: 2.5rem 1.25rem;
+    padding: 1.25rem 1rem 5.5rem;
   }
   .pageHeader,
   .sectionHeading {
     align-items: flex-start;
     flex-direction: column;
     gap: 1rem;
+  }
+  .heroAction {
+    width: 100%;
+    justify-items: stretch;
+  }
+  .heroAction .status {
+    justify-self: start;
   }
   .actions,
   .actions button {

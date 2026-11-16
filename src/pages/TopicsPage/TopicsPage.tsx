@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../features/auth/model/useAuth';
 import { learningTaskQueryKeys } from '../../features/learningTasks/model/learningTaskQueries';
@@ -10,8 +10,11 @@ import {
   useCreateTopic,
   useTopics,
 } from '../../features/topics/model/topicQueries';
-import { topicStatusLabels } from '../../features/topics/model/topicStatus';
+import { useTopicCardMetrics } from '../../features/topics/model/topicCardMetrics';
 import { CreateTopicForm } from '../../features/topics/ui/CreateTopicForm';
+import { useI18n } from '../../shared/i18n/useI18n';
+import { localizeTopicStatus } from '../../shared/i18n/domainLabels';
+import { Progress } from '../../shared/ui/UiPrimitives';
 import styles from './TopicsPage.module.css';
 
 function getDeletionSuccessState(
@@ -31,12 +34,16 @@ function getDeletionSuccessState(
 }
 
 export function TopicsPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
   const userId = user?.id ?? 0;
   const deletionState = getDeletionSuccessState(location.state as unknown);
   const topicsQuery = useTopics(userId);
+  const metricsSentinelRef = useRef<HTMLElement>(null);
+  const [metricsEnabled, setMetricsEnabled] = useState(false);
+  const topicMetrics = useTopicCardMetrics(userId, topicsQuery.data ?? [], metricsEnabled);
   const createMutation = useCreateTopic(userId);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -54,6 +61,19 @@ export function TopicsPage() {
     });
   }, [deletionState, queryClient, userId]);
 
+  useEffect(() => {
+    const sentinel = metricsSentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) {
+        setMetricsEnabled(true);
+        observer.disconnect();
+      }
+    });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [topicsQuery.isSuccess]);
+
   async function handleCreate(request: CreateTopicRequest) {
     await createMutation.mutateAsync(request);
     setIsFormOpen(false);
@@ -63,17 +83,17 @@ export function TopicsPage() {
     <main className={styles.page}>
       {deletionState ? (
         <p className={styles.successMessage} role="status">
-          Topic deleted successfully.
+          {t('topics.deleted')}
         </p>
       ) : null}
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>Learning workspace</p>
-          <h1>My Topics</h1>
-          <p>Keep the subjects you want to learn in one focused place.</p>
+          <p className={styles.eyebrow}>{t('topics.phaseBTitle')}</p>
+          <h1>{t('topics.title')}</h1>
+          <p>{t('topics.phaseBDescription')}</p>
         </div>
         <button type="button" onClick={() => setIsFormOpen(true)} disabled={isFormOpen}>
-          Add Topic
+          {t('topics.add')}
         </button>
       </header>
 
@@ -81,8 +101,8 @@ export function TopicsPage() {
         <section className={styles.formCard} aria-labelledby="create-topic-title">
           <div className={styles.sectionHeading}>
             <div>
-              <p className={styles.eyebrow}>New topic</p>
-              <h2 id="create-topic-title">What will you learn next?</h2>
+              <p className={styles.eyebrow}>{t('topics.new')}</p>
+              <h2 id="create-topic-title">{t('topics.createQuestion')}</h2>
             </div>
           </div>
           <CreateTopicForm
@@ -93,13 +113,13 @@ export function TopicsPage() {
         </section>
       ) : null}
 
-      <section aria-labelledby="topics-list-title">
+      <section ref={metricsSentinelRef} aria-labelledby="topics-list-title">
         <div className={styles.sectionHeading}>
           <div>
-            <p className={styles.eyebrow}>Your collection</p>
-            <h2 id="topics-list-title">Topics</h2>
+            <p className={styles.eyebrow}>{t('topics.collection')}</p>
+            <h2 id="topics-list-title">{t('topics.collectionTitle')}</h2>
           </div>
-          {topicsQuery.data ? <p>{topicsQuery.data.length} total</p> : null}
+          {topicsQuery.data ? <p>{t('common.total', { count: topicsQuery.data.length })}</p> : null}
         </div>
 
         {topicsQuery.isPending ? (
@@ -107,37 +127,75 @@ export function TopicsPage() {
             <span />
             <span />
             <span />
-            <p>Loading topics…</p>
+            <p>{t('topics.loading')}</p>
           </div>
         ) : topicsQuery.isError ? (
           <div className={styles.messageState} role="alert">
-            <h3>Topics are unavailable</h3>
-            <p>We couldn’t load your topics. Check your connection and try again.</p>
+            <h3>{t('topics.unavailable')}</h3>
+            <p>{t('topics.loadError')}</p>
             <button type="button" onClick={() => void topicsQuery.refetch()}>
-              Retry
+              {t('common.retry')}
             </button>
           </div>
         ) : topicsQuery.data.length === 0 ? (
           <div className={styles.messageState}>
-            <h3>No topics yet</h3>
-            <p>Create your first topic to start organizing what you want to learn.</p>
+            <h3>{t('topics.emptyTitle')}</h3>
+            <p>{t('topics.emptyText')}</p>
             <button type="button" onClick={() => setIsFormOpen(true)} disabled={isFormOpen}>
-              Add your first topic
+              {t('topics.addFirst')}
             </button>
           </div>
         ) : (
-          <ul className={styles.topicList} aria-label="Learning topics">
-            {topicsQuery.data.map((topic) => (
-              <li key={topic.id}>
-                <div>
-                  <h3>
-                    <Link to={`/app/topics/${topic.id}`}>{topic.title}</Link>
-                  </h3>
-                  {topic.description ? <p>{topic.description}</p> : null}
-                </div>
-                <span data-status={topic.status}>{topicStatusLabels[topic.status]}</span>
-              </li>
-            ))}
+          <ul className={styles.topicList} aria-label={t('topics.listLabel')}>
+            {topicsQuery.data.map((topic, index) => {
+              const metric = topicMetrics.get(topic.id);
+              const progress = metric?.totalTasks
+                ? Math.round((metric.completedTasks / metric.totalTasks) * 100)
+                : 0;
+              return (
+                <li key={topic.id} className={styles.topicCard}>
+                  <div className={styles.cardTopline}>
+                    <span className={styles.topicNumber} aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className={styles.status} data-status={topic.status}>
+                      {localizeTopicStatus(t, topic.status)}
+                    </span>
+                  </div>
+                  <div className={styles.cardCopy}>
+                    <h3>
+                      <Link to={`/app/topics/${topic.id}`}>{topic.title}</Link>
+                    </h3>
+                    <p>{topic.description || t('common.noDescription')}</p>
+                  </div>
+                  {metric?.isPending ? (
+                    <p className={styles.metricNote}>{t('topics.loadingProgress')}</p>
+                  ) : metric && !metric.isError ? (
+                    <div className={styles.metrics}>
+                      <div className={styles.progressHeader}>
+                        <span>{t('topics.taskProgress')}</span>
+                        <strong>
+                          {metric.completedTasks}/{metric.totalTasks}
+                        </strong>
+                      </div>
+                      <Progress
+                        value={progress}
+                        label={t('dashboard.progressAria', { percent: progress })}
+                      />
+                      <div className={styles.metricRow}>
+                        <span>{t('topics.studyMinutes', { count: metric.studyMinutes })}</span>
+                        <span>{t('dashboard.sessionCount', { count: metric.sessions })}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className={styles.metricNote}>{t('topics.openForProgress')}</p>
+                  )}
+                  <Link className={styles.openLink} to={`/app/topics/${topic.id}`}>
+                    {t('topics.open')} <span aria-hidden="true">→</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

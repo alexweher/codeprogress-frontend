@@ -1,5 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
+const runtime = globalThis as { process?: { env?: Record<string, string | undefined> } };
+const mockedBaseUrl =
+  runtime.process?.env?.CODEPROGRESS_MOCK_E2E_BASE_URL ?? 'http://127.0.0.1:5173';
+
 export default defineConfig({
   testDir: './e2e/mocked',
   fullyParallel: false,
@@ -8,7 +12,7 @@ export default defineConfig({
   reporter: [['line']],
   outputDir: 'test-results',
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: mockedBaseUrl,
     trace: 'off',
     screenshot: 'off',
     video: 'off',

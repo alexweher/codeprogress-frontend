@@ -1,10 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import type { Mock } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AppRoutes } from '../../app/router';
 import { createTestQueryClient, renderApp } from '../../test/renderApp';
 import { AuthContext, type AuthContextValue } from './model/AuthContext';
 import { authSession } from './model/authSession';
+import { I18nProvider } from '../../shared/i18n/I18nProvider';
 
 const createdUserResponse = {
   id: 73,
@@ -191,14 +193,18 @@ describe('registration flow', () => {
     };
 
     render(
-      <MemoryRouter initialEntries={['/register']}>
-        <AuthContext.Provider value={authenticatedContext}>
-          <AppRoutes />
-        </AuthContext.Provider>
-      </MemoryRouter>,
+      <QueryClientProvider client={createTestQueryClient()}>
+        <I18nProvider>
+          <MemoryRouter initialEntries={['/register']}>
+            <AuthContext.Provider value={authenticatedContext}>
+              <AppRoutes />
+            </AuthContext.Provider>
+          </MemoryRouter>
+        </I18nProvider>
+      </QueryClientProvider>,
     );
 
-    expect(screen.getByRole('heading', { name: /you’re signed in/i })).toBeVisible();
+    expect(screen.getByRole('link', { name: /dashboard/i })).toBeVisible();
     expect(screen.queryByRole('heading', { name: /join codeprogress/i })).not.toBeInTheDocument();
   });
 

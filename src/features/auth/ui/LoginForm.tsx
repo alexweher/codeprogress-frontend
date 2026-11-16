@@ -8,51 +8,54 @@ import {
 } from '../../../shared/api/apiError';
 import { useAuth } from '../model/useAuth';
 import styles from './LoginForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import type { I18nContextValue } from '../../../shared/i18n/I18nContext';
 
 type FieldErrors = Partial<Record<'email' | 'password', string>>;
 
 type LoginFormProps = {
   initialEmail?: string;
   successMessage?: string;
+  redirectTo?: string;
 };
 
-function validate(email: string, password: string): FieldErrors {
+function validate(email: string, password: string, t: I18nContextValue['t']): FieldErrors {
   const errors: FieldErrors = {};
   const normalizedEmail = email.trim();
 
   if (!normalizedEmail) {
-    errors.email = 'Email is required.';
+    errors.email = t('auth.emailRequired');
   } else if (normalizedEmail.length > 320) {
-    errors.email = 'Email must not exceed 320 characters.';
+    errors.email = t('auth.emailTooLong');
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    errors.email = 'Enter a valid email address.';
+    errors.email = t('auth.emailInvalid');
   }
 
   if (!password.trim()) {
-    errors.password = 'Password is required.';
+    errors.password = t('auth.passwordRequired');
   }
 
   return errors;
 }
 
-function getSubmissionMessage(error: unknown) {
+function getSubmissionMessage(error: unknown, t: I18nContextValue['t']) {
   if (error instanceof HttpError && error.status === 401) {
-    return 'Email or password is incorrect.';
+    return t('auth.invalidCredentials');
   }
 
   if (error instanceof NetworkError) {
-    return 'Unable to reach CodeProgress. Check your connection and try again.';
+    return t('auth.networkError');
   }
 
   if (error instanceof ResponseFormatError) {
-    return 'CodeProgress returned an unexpected response. Please try again.';
+    return t('auth.responseError');
   }
 
   if (error instanceof HttpError) {
-    return error.apiError?.message ?? 'Sign in failed. Please try again.';
+    return t('auth.loginFailed');
   }
 
-  return 'Sign in failed. Please try again.';
+  return t('auth.loginFailed');
 }
 
 function getServerFieldErrors(error: unknown): FieldErrors {
@@ -68,7 +71,12 @@ function getServerFieldErrors(error: unknown): FieldErrors {
   }, {});
 }
 
-export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps) {
+export function LoginForm({
+  initialEmail = '',
+  successMessage,
+  redirectTo = '/app/dashboard',
+}: LoginFormProps) {
+  const { t } = useI18n();
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState(initialEmail);
@@ -84,7 +92,7 @@ export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps)
       return;
     }
 
-    const validationErrors = validate(email, password);
+    const validationErrors = validate(email, password, t);
     setFieldErrors(validationErrors);
     setSubmissionError(null);
 
@@ -96,13 +104,13 @@ export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps)
 
     try {
       await signIn({ email: email.trim(), password });
-      await navigate('/app', { replace: true });
+      await navigate(redirectTo, { replace: true });
     } catch (error) {
       if (!(error instanceof RequestAbortedError)) {
         const serverFieldErrors = getServerFieldErrors(error);
         setFieldErrors(serverFieldErrors);
         setSubmissionError(
-          Object.keys(serverFieldErrors).length > 0 ? null : getSubmissionMessage(error),
+          Object.keys(serverFieldErrors).length > 0 ? null : getSubmissionMessage(error, t),
         );
       }
     } finally {
@@ -118,7 +126,7 @@ export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps)
         </div>
       ) : null}
       <div className={styles.field}>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email">{t('auth.email')}</label>
         <input
           id="email"
           name="email"
@@ -143,8 +151,8 @@ export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps)
 
       <div className={styles.field}>
         <div className={styles.labelRow}>
-          <label htmlFor="password">Password</label>
-          <span>8–72 characters for registered accounts</span>
+          <label htmlFor="password">{t('auth.password')}</label>
+          <span>{t('auth.loginPasswordHint')}</span>
         </div>
         <input
           id="password"
@@ -174,7 +182,7 @@ export function LoginForm({ initialEmail = '', successMessage }: LoginFormProps)
       ) : null}
 
       <button className={styles.submit} type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Signing in…' : 'Sign in'}
+        {isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
       </button>
     </form>
   );

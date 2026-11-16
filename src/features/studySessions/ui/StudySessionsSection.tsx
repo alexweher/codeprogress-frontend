@@ -1,34 +1,62 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatLocalDate } from '../../learningTasks/lib/localDate';
 import { useLearningTasks } from '../../learningTasks/model/learningTaskQueries';
 import { getStudySessionErrorMessage } from '../lib/studySessionErrors';
 import { useCreateStudySession, useStudySessions } from '../model/studySessionQueries';
 import { CreateStudySessionForm } from './CreateStudySessionForm';
 import styles from './StudySessionsSection.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { formatLocalDateForLocale } from '../../../shared/i18n/format';
+import { formatSessionDate, formatSessionDuration } from '../lib/sessionPresentation';
 
 type StudySessionsSectionProps = {
   userId: number;
   topicId: number;
+  onMetricsChange?: (metrics: { minutes: number; total: number }) => void;
 };
 
-export function StudySessionsSection({ userId, topicId }: StudySessionsSectionProps) {
+export function StudySessionsSection({
+  userId,
+  topicId,
+  onMetricsChange,
+}: StudySessionsSectionProps) {
+  const { locale, t } = useI18n();
   const sessionsQuery = useStudySessions(userId, topicId);
   const tasksQuery = useLearningTasks(userId, topicId);
   const createMutation = useCreateStudySession(userId, topicId);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const taskTitles = useMemo(
-    () => new Map((tasksQuery.data ?? []).map((task) => [task.id, task.title])),
-    [tasksQuery.data],
+  const orderedSessions = useMemo(
+    () =>
+      [...(sessionsQuery.data ?? [])].sort(
+        (a, b) => b.sessionDate.localeCompare(a.sessionDate) || b.id - a.id,
+      ),
+    [sessionsQuery.data],
   );
+  const totalMinutes = orderedSessions.reduce((sum, session) => sum + session.durationMinutes, 0);
+
+  useEffect(() => {
+    if (!sessionsQuery.isSuccess) return;
+    onMetricsChange?.({
+      minutes: sessionsQuery.data.reduce((total, session) => total + session.durationMinutes, 0),
+      total: sessionsQuery.data.length,
+    });
+  }, [onMetricsChange, sessionsQuery.data, sessionsQuery.isSuccess]);
 
   return (
-    <section className={styles.section} aria-labelledby="study-sessions-title">
+    <section id="study-sessions" className={styles.section} aria-labelledby="study-sessions-title">
       <div className={styles.heading}>
         <div>
-          <p className={styles.eyebrow}>Learning history</p>
-          <h2 id="study-sessions-title">Study sessions</h2>
+          <p className={styles.eyebrow}>{t('sessions.title')}</p>
+          <h2 id="study-sessions-title">{t('sessions.history')}</h2>
+          {sessionsQuery.isSuccess && orderedSessions.length > 0 ? (
+            <p className={styles.summary}>
+              {t('sessions.historySummary', {
+                count: orderedSessions.length,
+                duration: formatSessionDuration(totalMinutes, locale),
+              })}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -39,7 +67,7 @@ export function StudySessionsSection({ userId, topicId }: StudySessionsSectionPr
           }}
           disabled={createMutation.isPending || isCreateOpen}
         >
-          Add session
+          {t('sessions.add')}
         </button>
       </div>
 
@@ -51,7 +79,7 @@ export function StudySessionsSection({ userId, topicId }: StudySessionsSectionPr
 
       {isCreateOpen ? (
         <div className={styles.formCard} aria-labelledby="create-study-session-title">
-          <h3 id="create-study-session-title">Record study session</h3>
+          <h3 id="create-study-session-title">{t('sessions.record')}</h3>
           <CreateStudySessionForm
             tasks={tasksQuery.data ?? []}
             areTasksLoading={tasksQuery.isPending}
@@ -64,7 +92,7 @@ export function StudySessionsSection({ userId, topicId }: StudySessionsSectionPr
             onSubmit={async (request) => {
               await createMutation.mutateAsync(request);
               setIsCreateOpen(false);
-              setSuccessMessage('Study session recorded.');
+              setSuccessMessage(t('sessions.recorded'));
             }}
           />
         </div>
@@ -74,62 +102,52 @@ export function StudySessionsSection({ userId, topicId }: StudySessionsSectionPr
         <div className={styles.loadingState} role="status" aria-busy="true">
           <span />
           <span />
-          <p>Loading study sessions…</p>
+          <p>{t('sessions.loading')}</p>
         </div>
       ) : null}
 
       {sessionsQuery.isError ? (
         <div className={styles.errorState} role="alert">
-          <h3>Study sessions are unavailable</h3>
-          <p>
-            {getStudySessionErrorMessage(
-              sessionsQuery.error,
-              'The study sessions could not be loaded. Try again.',
-            )}
-          </p>
+          <h3>{t('sessions.unavailable')}</h3>
+          <p>{getStudySessionErrorMessage(sessionsQuery.error, t('sessions.loadError'), t)}</p>
           <button type="button" onClick={() => void sessionsQuery.refetch()}>
-            Retry sessions
+            {t('sessions.retry')}
           </button>
         </div>
       ) : null}
 
       {sessionsQuery.isSuccess && sessionsQuery.data.length === 0 ? (
         <div className={styles.emptyState}>
-          <h3>No study sessions yet</h3>
-          <p>Record focused study time for this topic when you finish a session.</p>
+          <h3>{t('sessions.empty')}</h3>
+          <p>{t('sessions.emptyText')}</p>
+          <button type="button" onClick={() => setIsCreateOpen(true)} disabled={isCreateOpen}>
+            {t('sessions.first')}
+          </button>
         </div>
       ) : null}
 
       {sessionsQuery.isSuccess && sessionsQuery.data.length > 0 ? (
-        <ul className={styles.list} aria-label="Study sessions">
-          {sessionsQuery.data.map((session) => (
+        <ul className={styles.list} aria-label={t('sessions.listLabel')}>
+          {orderedSessions.map((session) => (
             <li className={styles.sessionCard} key={session.id}>
               <div className={styles.sessionHeader}>
                 <h3>
                   <Link
                     to={`/app/sessions/${session.id}`}
-                    aria-label={`View study session on ${formatLocalDate(session.sessionDate)}`}
+                    aria-label={t('sessions.viewAria', {
+                      date: formatLocalDateForLocale(session.sessionDate, locale),
+                    })}
                   >
                     <time dateTime={session.sessionDate}>
-                      {formatLocalDate(session.sessionDate)}
+                      {formatSessionDate(session.sessionDate, locale)}
                     </time>
                   </Link>
                 </h3>
-                <span className={styles.duration}>{session.durationMinutes} min</span>
+                <span className={styles.duration}>
+                  {formatSessionDuration(session.durationMinutes, locale)}
+                </span>
               </div>
               {session.note ? <p className={styles.note}>{session.note}</p> : null}
-              <div className={styles.completedTasks}>
-                <h4>Completed tasks</h4>
-                {session.completedTaskIds.length === 0 ? (
-                  <p>No tasks recorded.</p>
-                ) : (
-                  <ul>
-                    {session.completedTaskIds.map((taskId) => (
-                      <li key={taskId}>{taskTitles.get(taskId) ?? `Task #${taskId}`}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
             </li>
           ))}
         </ul>

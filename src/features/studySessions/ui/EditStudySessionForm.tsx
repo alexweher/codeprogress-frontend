@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { HttpError } from '../../../shared/api/apiError';
 import type { LearningTaskResponse } from '../../learningTasks/api/learningTasksApi';
 import { isLocalDate } from '../../learningTasks/lib/localDate';
-import { learningTaskStatusLabels } from '../../learningTasks/model/learningTaskMetadata';
 import {
   STUDY_SESSION_DURATION_MAX,
   STUDY_SESSION_NOTE_MAX_LENGTH,
@@ -11,6 +10,8 @@ import {
 } from '../api/studySessionsApi';
 import { getStudySessionErrorMessage } from '../lib/studySessionErrors';
 import styles from './CreateStudySessionForm.module.css';
+import { useI18n } from '../../../shared/i18n/useI18n';
+import { localizeTaskStatus } from '../../../shared/i18n/domainLabels';
 
 type FieldName = 'sessionDate' | 'durationMinutes' | 'note' | 'completedTaskIds';
 type FieldErrors = Partial<Record<FieldName, string>>;
@@ -44,6 +45,7 @@ export function EditStudySessionForm({
   onCancel: () => void;
   onSubmit: (request: UpdateStudySessionRequest) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [sessionDate, setSessionDate] = useState(session.sessionDate);
   const [durationMinutes, setDurationMinutes] = useState(String(session.durationMinutes));
   const [note, setNote] = useState(session.note ?? '');
@@ -56,19 +58,19 @@ export function EditStudySessionForm({
     if (isPending) return;
 
     const errors: FieldErrors = {};
-    if (!isLocalDate(sessionDate)) errors.sessionDate = 'Enter a valid session date.';
+    if (!isLocalDate(sessionDate)) errors.sessionDate = t('sessions.dateInvalid');
     const duration = Number(durationMinutes);
     if (!/^\d+$/.test(durationMinutes) || !Number.isSafeInteger(duration) || duration < 1) {
-      errors.durationMinutes = 'Enter a whole number greater than zero.';
+      errors.durationMinutes = t('sessions.durationInvalid');
     } else if (duration > STUDY_SESSION_DURATION_MAX) {
-      errors.durationMinutes = `Use ${STUDY_SESSION_DURATION_MAX} minutes or fewer.`;
+      errors.durationMinutes = t('sessions.maxMinutes', { count: STUDY_SESSION_DURATION_MAX });
     }
     if (note.length > STUDY_SESSION_NOTE_MAX_LENGTH) {
-      errors.note = `Use ${STUDY_SESSION_NOTE_MAX_LENGTH} characters or fewer.`;
+      errors.note = t('common.maxCharacters', { count: STUDY_SESSION_NOTE_MAX_LENGTH });
     }
     const availableTaskIds = new Set(tasks.map((task) => task.id));
     if (completedTaskIds.some((taskId) => !availableTaskIds.has(taskId))) {
-      errors.completedTaskIds = 'Refresh the session and choose available tasks again.';
+      errors.completedTaskIds = t('sessions.refreshSessionTasks');
     }
 
     setFieldErrors(errors);
@@ -84,9 +86,7 @@ export function EditStudySessionForm({
       });
     } catch (error) {
       if (error instanceof HttpError) setFieldErrors(getBackendFieldErrors(error));
-      setSubmissionError(
-        getStudySessionErrorMessage(error, 'The study session could not be updated. Try again.'),
-      );
+      setSubmissionError(getStudySessionErrorMessage(error, t('sessions.updateError'), t));
     }
   }
 
@@ -97,14 +97,12 @@ export function EditStudySessionForm({
   return (
     <form className={styles.form} onSubmit={(event) => void handleSubmit(event)} noValidate>
       <p className={styles.warning} role="note">
-        Changing completed tasks can change task statuses. Added tasks become Completed. A removed
-        task is restored only when this session managed its status and no other session still
-        references it. Manually completed tasks stay Completed.
+        {t('sessions.updateWarning')}
       </p>
 
       <div className={styles.fieldGrid}>
         <div className={styles.field}>
-          <label htmlFor="edit-study-session-date">Session date</label>
+          <label htmlFor="edit-study-session-date">{t('sessions.date')}</label>
           <input
             id="edit-study-session-date"
             name="sessionDate"
@@ -125,7 +123,7 @@ export function EditStudySessionForm({
         </div>
 
         <div className={styles.field}>
-          <label htmlFor="edit-study-session-duration">Duration (minutes)</label>
+          <label htmlFor="edit-study-session-duration">{t('sessions.durationMinutes')}</label>
           <input
             id="edit-study-session-duration"
             name="durationMinutes"
@@ -140,6 +138,7 @@ export function EditStudySessionForm({
             aria-invalid={fieldErrors.durationMinutes ? true : undefined}
             aria-describedby={errorId('durationMinutes')}
             disabled={isPending}
+            placeholder={t('sessions.durationExample')}
           />
           {fieldErrors.durationMinutes ? (
             <p id={errorId('durationMinutes')} className={styles.error} role="alert">
@@ -150,7 +149,7 @@ export function EditStudySessionForm({
       </div>
 
       <div className={styles.field}>
-        <label htmlFor="edit-study-session-note">Notes (optional)</label>
+        <label htmlFor="edit-study-session-note">{t('sessions.notesOptional')}</label>
         <textarea
           id="edit-study-session-note"
           name="note"
@@ -161,6 +160,7 @@ export function EditStudySessionForm({
           aria-invalid={fieldErrors.note ? true : undefined}
           aria-describedby={errorId('note')}
           disabled={isPending}
+          placeholder={t('sessions.noteExample')}
         />
         {fieldErrors.note ? (
           <p id={errorId('note')} className={styles.error} role="alert">
@@ -170,7 +170,7 @@ export function EditStudySessionForm({
       </div>
 
       <fieldset className={styles.tasksFieldset} disabled={isPending}>
-        <legend>Tasks completed during this session (optional)</legend>
+        <legend>{t('sessions.completedOptional')}</legend>
         <div className={styles.taskOptions}>
           {tasks.map((task) => (
             <label className={styles.taskOption} key={task.id}>
@@ -189,7 +189,7 @@ export function EditStudySessionForm({
               />
               <span>
                 <strong>{task.title}</strong>
-                <small>{learningTaskStatusLabels[task.status]}</small>
+                <small>{localizeTaskStatus(t, task.status)}</small>
               </span>
             </label>
           ))}
@@ -209,10 +209,10 @@ export function EditStudySessionForm({
 
       <div className={styles.actions}>
         <button type="submit" disabled={isPending}>
-          {isPending ? 'Updating session…' : 'Update session'}
+          {isPending ? t('sessions.updating') : t('sessions.update')}
         </button>
         <button type="button" onClick={onCancel} disabled={isPending}>
-          Cancel
+          {t('common.cancel')}
         </button>
       </div>
     </form>

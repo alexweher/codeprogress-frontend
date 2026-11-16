@@ -6,16 +6,18 @@
 
 html {
   background: var(--color-background);
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at 15% 85%, rgba(213, 138, 42, 0.1), transparent 32rem),
-    radial-gradient(circle at 90% 10%, rgba(31, 106, 82, 0.11), transparent 34rem),
+    radial-gradient(circle at 12% 88%, rgba(117, 89, 232, 0.09), transparent 30rem),
+    radial-gradient(circle at 88% 8%, rgba(67, 182, 106, 0.11), transparent 32rem),
     var(--color-background);
   color: var(--color-text);
+  overflow-x: hidden;
 }
 
 button,
@@ -23,6 +25,28 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+button:disabled {
+  transform: none !important;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 24%, white);
+  color: var(--color-text-strong);
 }
 
 :focus-visible {
