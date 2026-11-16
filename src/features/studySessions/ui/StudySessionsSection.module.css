@@ -2,9 +2,15 @@
   margin-top: 1rem;
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card, 1.25rem);
   background: var(--color-surface);
-  box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
+  box-shadow: var(--shadow-card, 0 0.6rem 2rem rgba(39, 54, 48, 0.05));
+}
+
+.summary {
+  margin: 0.55rem 0 0;
+  color: var(--color-text-muted);
+  font-weight: 650;
 }
 
 .heading,
@@ -40,6 +46,7 @@
 }
 
 .heading > button,
+.emptyState button,
 .errorState button {
   min-height: 2.65rem;
   padding: 0.6rem 0.95rem;
@@ -52,6 +59,7 @@
 }
 
 .heading > button:hover:not(:disabled),
+.emptyState button:hover,
 .errorState button:hover {
   border-color: var(--color-brand);
   color: var(--color-brand-strong);
@@ -89,12 +97,29 @@
 
 .emptyState p,
 .errorState p,
-.note,
-.completedTasks p {
+.note {
   color: var(--color-text-muted);
   line-height: 1.65;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.emptyState {
+  max-width: 48rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-style: dashed;
+}
+
+.emptyState button {
+  margin-top: 0.7rem;
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: white;
+}
+
+.emptyState button:hover:not(:disabled) {
+  background: var(--color-brand-strong);
+  color: white;
 }
 
 .errorState button {
@@ -137,8 +162,9 @@
   min-width: 0;
   padding: 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 0.85rem;
-  background: var(--color-background);
+  border-radius: var(--radius-card, 1.25rem);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card, 0 0.6rem 2rem rgba(39, 54, 48, 0.05));
 }
 
 .sessionCard h3 {
@@ -148,6 +174,11 @@
 .sessionCard h3 a {
   color: var(--color-text-strong);
   text-underline-offset: 0.2em;
+}
+
+.sessionCard:focus-within,
+.sessionCard:hover {
+  border-color: var(--color-brand);
 }
 
 .sessionCard h3 a:hover {
@@ -166,35 +197,6 @@
 
 .note {
   margin: 1rem 0 0;
-}
-
-.completedTasks {
-  margin-top: 1rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.completedTasks h4 {
-  margin: 0;
-  color: var(--color-text-subtle);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-}
-
-.completedTasks p,
-.completedTasks ul {
-  margin: 0.6rem 0 0;
-}
-
-.completedTasks ul {
-  display: grid;
-  gap: 0.35rem;
-  padding-left: 1.25rem;
-  color: var(--color-text-strong);
-}
-
-.completedTasks li {
-  overflow-wrap: anywhere;
 }
 
 @keyframes shimmer {

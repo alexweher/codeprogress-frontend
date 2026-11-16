@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../features/auth/model/useAuth';
 import { useLearningTasks } from '../../features/learningTasks/model/learningTaskQueries';
+import { useTopic } from '../../features/topics/model/topicQueries';
 import type { StudySessionResponse } from '../../features/studySessions/api/studySessionsApi';
 import { getStudySessionErrorMessage } from '../../features/studySessions/lib/studySessionErrors';
 import { parseStudySessionId } from '../../features/studySessions/lib/studySessionId';
@@ -15,7 +16,11 @@ import { EditStudySessionForm } from '../../features/studySessions/ui/EditStudyS
 import { HttpError, NetworkError, RequestAbortedError } from '../../shared/api/apiError';
 import styles from './StudySessionDetailsPage.module.css';
 import { useI18n } from '../../shared/i18n/useI18n';
-import { formatLocalDateForLocale, formatLocalDateTimeForLocale } from '../../shared/i18n/format';
+import { formatLocalDateTimeForLocale } from '../../shared/i18n/format';
+import {
+  formatSessionDate,
+  formatSessionDuration,
+} from '../../features/studySessions/lib/sessionPresentation';
 
 function InvalidSessionPage() {
   const { t } = useI18n();
@@ -45,6 +50,7 @@ function LoadedStudySession({
   const { locale, t } = useI18n();
   const navigate = useNavigate();
   const tasksQuery = useLearningTasks(userId, session.topicId);
+  const topicQuery = useTopic(userId, session.topicId);
   const updateMutation = useUpdateStudySession(userId, session.id, session.completedTaskIds);
   const deleteMutation = useDeleteStudySession(
     userId,
@@ -61,7 +67,6 @@ function LoadedStudySession({
   } | null>(null);
   const deleteButtonRef = useRef<HTMLButtonElement>(null);
   const deleteDialogWasOpenRef = useRef(false);
-  const taskTitles = new Map((tasksQuery.data ?? []).map((task) => [task.id, task.title]));
 
   useEffect(() => {
     if (isDeleteDialogOpen) {
@@ -112,17 +117,27 @@ function LoadedStudySession({
 
   return (
     <main className={styles.page}>
-      <Link className={styles.backLink} to={`/app/topics/${session.topicId}`}>
-        {t('common.backToTopic')}
-      </Link>
+      <nav className={styles.breadcrumbs} aria-label={t('topics.breadcrumb')}>
+        <Link to="/app/topics">{t('nav.topics')}</Link>
+        <span aria-hidden="true">/</span>
+        <Link to={`/app/topics/${session.topicId}`}>
+          {topicQuery.data?.title ?? t('common.backToTopic')}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{t('sessions.studySession')}</span>
+      </nav>
 
       <header className={styles.pageHeader}>
         <div>
-          <p className={styles.eyebrow}>{t('sessions.studySession')}</p>
-          <h1>{formatLocalDateForLocale(session.sessionDate, locale)}</h1>
+          <h1>{t('sessions.studySession')}</h1>
+          <p className={styles.headerDate}>
+            <time dateTime={session.sessionDate}>
+              {formatSessionDate(session.sessionDate, locale)}
+            </time>
+          </p>
         </div>
         <span className={styles.duration}>
-          {t('sessions.min', { count: session.durationMinutes })}
+          {formatSessionDuration(session.durationMinutes, locale)}
         </span>
       </header>
 
@@ -135,8 +150,7 @@ function LoadedStudySession({
       <section className={styles.detailsCard} aria-labelledby="session-overview-title">
         <div className={styles.sectionHeading}>
           <div>
-            <p className={styles.eyebrow}>{t('sessions.history')}</p>
-            <h2 id="session-overview-title">{t('sessions.details')}</h2>
+            <h2 id="session-overview-title">{t('sessions.note')}</h2>
           </div>
           <div className={styles.actions}>
             <button
@@ -177,18 +191,6 @@ function LoadedStudySession({
 
         <dl className={styles.metadata}>
           <div>
-            <dt>{t('sessions.date')}</dt>
-            <dd>
-              <time dateTime={session.sessionDate}>
-                {formatLocalDateForLocale(session.sessionDate, locale)}
-              </time>
-            </dd>
-          </div>
-          <div>
-            <dt>{t('sessions.duration')}</dt>
-            <dd>{t('sessions.minutes', { count: session.durationMinutes })}</dd>
-          </div>
-          <div>
             <dt>{t('common.created')}</dt>
             <dd>
               <time dateTime={session.createdAt}>
@@ -205,35 +207,6 @@ function LoadedStudySession({
             </dd>
           </div>
         </dl>
-
-        <div className={styles.completedTasks}>
-          <h3>{t('sessions.completedTasks')}</h3>
-          {session.completedTaskIds.length === 0 ? (
-            <p>{t('sessions.noTasks')}</p>
-          ) : (
-            <ul>
-              {session.completedTaskIds.map((taskId) => (
-                <li key={taskId}>
-                  {taskTitles.get(taskId) ?? t('sessions.taskFallback', { id: taskId })}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {tasksQuery.isPending ? (
-          <p className={styles.taskNotice} role="status">
-            {t('sessions.loadingNames')}
-          </p>
-        ) : null}
-        {tasksQuery.isError ? (
-          <div className={styles.taskError} role="alert">
-            <p>{t('sessions.taskLoadError')}</p>
-            <button type="button" onClick={() => void tasksQuery.refetch()}>
-              {t('sessions.retryTasks')}
-            </button>
-          </div>
-        ) : null}
       </section>
 
       {isEditing && tasksQuery.isSuccess ? (

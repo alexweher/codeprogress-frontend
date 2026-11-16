@@ -7,6 +7,7 @@ import { CreateStudySessionForm } from './CreateStudySessionForm';
 import styles from './StudySessionsSection.module.css';
 import { useI18n } from '../../../shared/i18n/useI18n';
 import { formatLocalDateForLocale } from '../../../shared/i18n/format';
+import { formatSessionDate, formatSessionDuration } from '../lib/sessionPresentation';
 
 type StudySessionsSectionProps = {
   userId: number;
@@ -25,10 +26,14 @@ export function StudySessionsSection({
   const createMutation = useCreateStudySession(userId, topicId);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const taskTitles = useMemo(
-    () => new Map((tasksQuery.data ?? []).map((task) => [task.id, task.title])),
-    [tasksQuery.data],
+  const orderedSessions = useMemo(
+    () =>
+      [...(sessionsQuery.data ?? [])].sort(
+        (a, b) => b.sessionDate.localeCompare(a.sessionDate) || b.id - a.id,
+      ),
+    [sessionsQuery.data],
   );
+  const totalMinutes = orderedSessions.reduce((sum, session) => sum + session.durationMinutes, 0);
 
   useEffect(() => {
     if (!sessionsQuery.isSuccess) return;
@@ -42,8 +47,16 @@ export function StudySessionsSection({
     <section id="study-sessions" className={styles.section} aria-labelledby="study-sessions-title">
       <div className={styles.heading}>
         <div>
-          <p className={styles.eyebrow}>{t('sessions.history')}</p>
-          <h2 id="study-sessions-title">{t('sessions.title')}</h2>
+          <p className={styles.eyebrow}>{t('sessions.title')}</p>
+          <h2 id="study-sessions-title">{t('sessions.history')}</h2>
+          {sessionsQuery.isSuccess && orderedSessions.length > 0 ? (
+            <p className={styles.summary}>
+              {t('sessions.historySummary', {
+                count: orderedSessions.length,
+                duration: formatSessionDuration(totalMinutes, locale),
+              })}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -107,12 +120,15 @@ export function StudySessionsSection({
         <div className={styles.emptyState}>
           <h3>{t('sessions.empty')}</h3>
           <p>{t('sessions.emptyText')}</p>
+          <button type="button" onClick={() => setIsCreateOpen(true)} disabled={isCreateOpen}>
+            {t('sessions.first')}
+          </button>
         </div>
       ) : null}
 
       {sessionsQuery.isSuccess && sessionsQuery.data.length > 0 ? (
         <ul className={styles.list} aria-label={t('sessions.listLabel')}>
-          {sessionsQuery.data.map((session) => (
+          {orderedSessions.map((session) => (
             <li className={styles.sessionCard} key={session.id}>
               <div className={styles.sessionHeader}>
                 <h3>
@@ -123,29 +139,15 @@ export function StudySessionsSection({
                     })}
                   >
                     <time dateTime={session.sessionDate}>
-                      {formatLocalDateForLocale(session.sessionDate, locale)}
+                      {formatSessionDate(session.sessionDate, locale)}
                     </time>
                   </Link>
                 </h3>
                 <span className={styles.duration}>
-                  {t('sessions.min', { count: session.durationMinutes })}
+                  {formatSessionDuration(session.durationMinutes, locale)}
                 </span>
               </div>
               {session.note ? <p className={styles.note}>{session.note}</p> : null}
-              <div className={styles.completedTasks}>
-                <h4>{t('sessions.completedTasks')}</h4>
-                {session.completedTaskIds.length === 0 ? (
-                  <p>{t('sessions.noTasks')}</p>
-                ) : (
-                  <ul>
-                    {session.completedTaskIds.map((taskId) => (
-                      <li key={taskId}>
-                        {taskTitles.get(taskId) ?? t('sessions.taskFallback', { id: taskId })}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
             </li>
           ))}
         </ul>

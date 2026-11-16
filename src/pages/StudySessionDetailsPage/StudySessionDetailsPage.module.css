@@ -1,7 +1,36 @@
 .page {
   width: min(72rem, 100%);
   min-width: 0;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  margin-bottom: 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.breadcrumbs a,
+.breadcrumbs span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumbs a {
+  color: var(--color-brand-strong);
+  font-weight: 750;
+}
+
+.headerDate {
+  margin: 0.65rem 0 0;
+  color: var(--color-text-muted);
+  font-weight: 650;
 }
 
 .backLink {
@@ -22,7 +51,7 @@
 }
 
 .pageHeader {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .pageHeader h1,
@@ -36,8 +65,8 @@
 }
 
 .pageHeader h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.1;
 }
 
 .sectionHeading h2,
@@ -69,9 +98,9 @@
 .messageState {
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--color-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-card, 1.25rem);
   background: var(--color-surface);
-  box-shadow: 0 0.6rem 2rem rgba(39, 54, 48, 0.05);
+  box-shadow: var(--shadow-card, 0 0.6rem 2rem rgba(39, 54, 48, 0.05));
 }
 
 .actionCard {
@@ -79,8 +108,7 @@
 }
 
 .actions button,
-.messageState button,
-.taskError button {
+.messageState button {
   min-height: 2.65rem;
   padding: 0.6rem 0.95rem;
   border: 1px solid var(--color-border-strong);
@@ -110,15 +138,19 @@
 
 .note,
 .emptyNote,
-.messageState > p:not(.eyebrow),
-.completedTasks p,
-.taskNotice,
-.taskError p {
+.messageState > p:not(.eyebrow) {
   margin: 1.5rem 0 0;
   color: var(--color-text-muted);
   line-height: 1.7;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.note {
+  padding: 1.1rem;
+  border-radius: 0.85rem;
+  background: var(--color-background);
+  color: var(--color-text-strong);
 }
 
 .emptyNote {
@@ -128,7 +160,7 @@
 
 .metadata {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin: 2rem 0 0;
 }
@@ -138,8 +170,7 @@
   border-top: 1px solid var(--color-border);
 }
 
-.metadata dt,
-.completedTasks h3 {
+.metadata dt {
   color: var(--color-text-subtle);
   font-size: 0.72rem;
   font-weight: 800;
@@ -153,41 +184,6 @@
   overflow-wrap: anywhere;
 }
 
-.completedTasks {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.completedTasks h3,
-.completedTasks ul {
-  margin: 0;
-}
-
-.completedTasks ul {
-  display: grid;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
-  padding-left: 1.25rem;
-}
-
-.completedTasks li {
-  overflow-wrap: anywhere;
-}
-
-.taskError {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.75rem;
-  background: var(--color-background);
-}
-
-.taskError p {
-  margin: 0;
-}
-
-.taskError button,
 .messageState button {
   margin-top: 1rem;
 }

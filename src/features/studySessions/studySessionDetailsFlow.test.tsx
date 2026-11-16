@@ -149,7 +149,7 @@ async function signInAndOpenSession(
   await view.user.type(screen.getByLabelText('Password'), 'not-a-real-password');
   await view.user.click(screen.getByRole('button', { name: 'Sign in' }));
   if (waitForDetails) {
-    await screen.findByRole('heading', { name: 'Session details' });
+    await screen.findByRole('heading', { name: 'Study session', level: 1 });
   }
   return view;
 }
@@ -233,26 +233,27 @@ describe('StudySession details and update flow', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('navigates from the Topic list and renders all response fields and Back to Topic', async () => {
+  it('navigates from the Topic list and renders session details without task claims', async () => {
     await signInAndOpenSession(fetchMock);
 
     expect(screen.getByText('45 minutes')).toBeVisible();
     expect(screen.getByText(session.note ?? '')).toBeVisible();
-    expect(await screen.findByText(firstTask.title)).toBeVisible();
+    expect(screen.queryByText(firstTask.title)).not.toBeInTheDocument();
+    expect(screen.queryByText('Completed tasks')).not.toBeInTheDocument();
     expect(screen.getAllByText('29.10.2026, 18:30')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: /back to topic/i })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: 'Database transactions' })).toHaveAttribute(
       'href',
       '/app/topics/7',
     );
   });
 
-  it('renders nullable note and an empty completedTasks set explicitly', async () => {
+  it('renders a nullable note without exposing the completedTaskIds set', async () => {
     await signInAndOpenSession(fetchMock, {
       detail: () => Promise.resolve(json({ ...session, note: null, completedTaskIds: [] })),
     });
 
     expect(screen.getByText('No notes recorded.')).toBeVisible();
-    expect(screen.getByText('No tasks recorded.')).toBeVisible();
+    expect(screen.queryByText('No tasks recorded.')).not.toBeInTheDocument();
   });
 
   it('shows loading, retryable HTTP error, network error and owner-scoped 404', async () => {
@@ -278,7 +279,7 @@ describe('StudySession details and update flow', () => {
     resolveFirst?.(json(apiError(500, 'Temporary failure'), 500));
     expect(await screen.findByRole('alert')).toHaveTextContent('Temporary failure');
     await view.user.click(screen.getByRole('button', { name: 'Retry' }));
-    expect(await screen.findByRole('heading', { name: 'Session details' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Study session', level: 1 })).toBeVisible();
     view.unmount();
     authSession.clear();
 
@@ -358,7 +359,8 @@ describe('StudySession details and update flow', () => {
       note: null,
       completedTaskIds: [12],
     });
-    expect(screen.getByRole('heading', { name: '30.10.2026' })).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Study session', level: 1 })).toBeVisible();
+    expect(screen.getByText('October 30, 2026')).toBeVisible();
     expect(screen.getByText('No notes recorded.')).toBeVisible();
   });
 
@@ -513,7 +515,7 @@ describe('StudySession details and update flow', () => {
 
   it('supports keyboard access through the edit form', async () => {
     const view = await signInAndOpenSession(fetchMock);
-    await screen.findByText(firstTask.title);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Edit session' })).toBeEnabled());
     const edit = screen.getByRole('button', { name: 'Edit session' });
     edit.focus();
     await view.user.keyboard('{Enter}');
@@ -666,7 +668,7 @@ describe('StudySession details and update flow', () => {
       await view.user.click(screen.getByRole('button', { name: 'Delete study session' }));
       await view.user.click(screen.getByRole('button', { name: 'Delete' }));
       expect(await screen.findByRole('alert')).toHaveTextContent(message);
-      expect(screen.getByRole('heading', { name: 'Session details' })).toBeVisible();
+      expect(screen.getByRole('heading', { name: 'Study session', level: 1 })).toBeVisible();
     },
   );
 

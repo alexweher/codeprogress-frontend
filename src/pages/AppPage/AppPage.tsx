@@ -36,11 +36,13 @@ export function AppPage() {
   ] as const;
   const pageLabel = location.pathname.includes('/settings')
     ? t('nav.settings')
-    : location.pathname.includes('/topics') ||
-        location.pathname.includes('/tasks') ||
-        location.pathname.includes('/sessions')
-      ? t('nav.topics')
-      : t('nav.dashboard');
+    : location.pathname.includes('/sessions/')
+      ? t('sessions.studySession')
+      : location.pathname.includes('/topics') ||
+          location.pathname.includes('/tasks') ||
+          location.pathname.includes('/sessions')
+        ? t('nav.topics')
+        : t('nav.dashboard');
 
   async function handleLogout() {
     if (isLoggingOut) return;

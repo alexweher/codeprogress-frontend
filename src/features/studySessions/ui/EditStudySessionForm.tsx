@@ -138,6 +138,7 @@ export function EditStudySessionForm({
             aria-invalid={fieldErrors.durationMinutes ? true : undefined}
             aria-describedby={errorId('durationMinutes')}
             disabled={isPending}
+            placeholder={t('sessions.durationExample')}
           />
           {fieldErrors.durationMinutes ? (
             <p id={errorId('durationMinutes')} className={styles.error} role="alert">
@@ -159,6 +160,7 @@ export function EditStudySessionForm({
           aria-invalid={fieldErrors.note ? true : undefined}
           aria-describedby={errorId('note')}
           disabled={isPending}
+          placeholder={t('sessions.noteExample')}
         />
         {fieldErrors.note ? (
           <p id={errorId('note')} className={styles.error} role="alert">

@@ -154,6 +154,7 @@ export function CreateStudySessionForm({
             aria-invalid={fieldErrors.durationMinutes ? true : undefined}
             aria-describedby={errorId('durationMinutes')}
             disabled={isPending}
+            placeholder={t('sessions.durationExample')}
           />
           {fieldErrors.durationMinutes ? (
             <p id={errorId('durationMinutes')} className={styles.error} role="alert">
@@ -175,6 +176,7 @@ export function CreateStudySessionForm({
           aria-invalid={fieldErrors.note ? true : undefined}
           aria-describedby={`${errorId('note') ?? ''} study-session-note-hint`.trim()}
           disabled={isPending}
+          placeholder={t('sessions.noteExample')}
         />
         <p id="study-session-note-hint" className={styles.hint}>
           {t('sessions.upToCharacters', { count: STUDY_SESSION_NOTE_MAX_LENGTH })}
